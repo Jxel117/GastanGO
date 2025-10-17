@@ -1,4 +1,5 @@
-# Backend con Express y GitFlow
+# SEMANA 1
+## Backend con Express y GitFlow
 
 ## Objetivo
 Configurar un entorno backend con **Express**, aplicar **GitFlow** con GitKraken, levantar un servidor básico con un endpoint raíz y documentar el proyecto.
@@ -39,5 +40,8 @@ Pasos aplicados:
 ```bash
 git clone <url-del-repositorio>
 cd <nombre-del-proyecto>
+```
 
+# Semana 2
+Creación del mini-dosser con los apis y necesarios (por el momento)
 
