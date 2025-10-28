@@ -1,3 +1,4 @@
+import axios from 'axios';
 // src/controllers/auth.controller.js
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -71,4 +72,33 @@ exports.login = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: "Error en el servidor al iniciar sesión." });
     }
+};
+
+const REGISTER_MS_URL = 'http://localhost:3001/api/v1/register';
+
+export const handleRegisterFromMain = async (req, res) => {
+  console.log('[Main Backend] Petición de registro recibida. Redirigiendo a Register-MS...');
+  
+  try {
+    // 1. Llama al microservicio (Comunicación REST)
+    const response = await axios.post(REGISTER_MS_URL, req.body);
+
+    // 2. Devuelve la respuesta del microservicio al cliente
+    console.log('[Main Backend] Registro exitoso en Register-MS');
+    return res.status(response.status).json(response.data);
+
+  } catch (error) {
+    // Manejo de errores (si el microservicio está caído o devuelve un error)
+    console.error('[Main Backend] Error al contactar Register-MS:', error.message);
+    
+    // Si el microservicio nos dio una respuesta de error (ej. 400)
+    if (error.response) {
+      return res.status(error.response.status).json(error.response.data);
+    }
+    
+    // Si el microservicio está caído (error de conexión)
+    return res.status(502).json({ 
+      error: 'Error de comunicación: El servicio de registro no está disponible.' 
+    });
+  }
 };
