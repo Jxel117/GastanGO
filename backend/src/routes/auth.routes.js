@@ -1,53 +1,105 @@
-// src/routes/auth.routes.js
+
 const express = require('express');
+const { register, login } = require('../controllers/auth.controller');
+const { check } = require('express-validator');
+
 const router = express.Router();
-const { body } = require('express-validator');
-const authController = require('../controllers/auth.controller');
-const { verifyToken, checkRoles } = require('../middlewares/auth.middleware'); // Importamos checkRoles
 
-// Ruta de Registro: POST /api/auth/register
-router.post('/register', [
-    // OWASP: Validación de Entrada (Ajustada a tus requisitos)
-    body('email', 'Por favor, introduce un email valido')
-        .isEmail()
-        .custom(value => {
-            if (!value.endsWith('@gmail.com')) {
-                throw new Error('El dominio del correo debe ser @gmail.com');
-            }
-            return true;
-        }),
-    body('password', 'La contraseña debe tener minimo 6 caracteres, una mayuscula y un numero')
-        .isLength({ min: 6 })
-        .matches(/^(?=.*[A-Z])(?=.*\d)/),
-    body('username')
-        .notEmpty().withMessage('El nombre de usuario no puede estar vacio')
-        .isLength({ min: 3, max: 15 }).withMessage('El nombre de usuario debe tener entre 3 y 15 caracteres')
-        .trim()
-        .escape(),
-], authController.register);
+// --- IMPLEMENTACIÓN DETALLADA ---
+// Este archivo define las rutas públicas para la autenticación.
+// Usamos `express-validator` para validar y sanitizar los datos de entrada
+// antes de que lleguen al controlador, lo que añade una capa de seguridad y robustez.
 
-// Ruta de Login: POST /api/auth/login
-router.post('/login', [
-    body('email', 'Por favor, introduce un email valido').isEmail(),
-    body('password', 'La contrasenia no puede estar vacia').not().isEmpty()
-], authController.login);
+/**
+ * @swagger
+ * tags:
+ *   name: Auth
+ *   description: User authentication
+ */
 
-// Ruta Protegida de Ejemplo: GET /api/auth/profile
-//  Se aplica el middleware verifyToken y luego el checkRoles
-router.get('/profile', verifyToken, checkRoles(['user', 'admin']), (req, res) => {
-    // Gracias al middleware verifyToken, tenemos acceso a req.user
-    res.json({
-        message: "Bienvenido a tu perfil protegido.",
-        user: req.user
-    });
-});
+/**
+ * @swagger
+ * /api/auth/register:
+ *   post:
+ *     summary: Register a new user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - username
+ *               - email
+ *               - password
+ *             properties:
+ *               username:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       201:
+ *         description: User created successfully
+ *       400:
+ *         description: Bad request (e.g., validation error)
+ */
+router.post(
+  '/register',
+  [
+    check('username', 'Username is required').not().isEmpty(),
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Password must be 6 or more characters').isLength({ min: 6 }),
+  ],
+  register
+);
 
-// Ejemplo de ruta solo para Admins (para probar RBAC)
-router.get('/admin-dashboard', verifyToken, checkRoles(['admin']), (req, res) => {
-    res.json({
-        message: "Bienvenido al panel de Administrador.",
-        user: req.user
-    });
-});
+/**
+ * @swagger
+ * /api/auth/login:
+ *   post:
+ *     summary: Log in a user
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 format: password
+ *     responses:
+ *       200:
+ *         description: Login successful, returns JWT token
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *       400:
+ *         description: Invalid credentials
+ */
+router.post(
+  '/login',
+  [
+    check('email', 'Please include a valid email').isEmail(),
+    check('password', 'Password is required').exists(),
+  ],
+  login
+);
 
 module.exports = router;
