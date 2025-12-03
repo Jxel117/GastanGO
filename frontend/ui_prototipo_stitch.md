@@ -43,10 +43,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Validación de credenciales → Redirección al Dashboard
 **Captura**
+<img width="780" height="1768" alt="screen" src="https://github.com/user-attachments/assets/8ea7f742-a543-4aff-92ee-c3246b531664" />
 
-![loginMovil](docs/img/prototipos/movil/login/screen.png)
-
-![loginWeb](docs\img\prototipos\web\iniciar_sesión\screen.png)
+<img width="2560" height="1600" alt="screen" src="https://github.com/user-attachments/assets/a47f0e37-d245-4c9e-b008-5fbf1e1131ca" />
 
 ---
 
@@ -67,9 +66,8 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: El botón "+" inicia el flujo de registro
 **Captura**
-![dashMovil](docs\img\prototipos\movil\dashboard_(home)\screen.png)
-
-![DashWeb](docs\img\prototipos\web\dashboard_(inicio)\screen.png)
+<img width="780" height="1818" alt="screen" src="https://github.com/user-attachments/assets/9effd5b7-2d76-40c5-9f80-0a69628f2e2c" />
+<img width="2560" height="1600" alt="screen" src="https://github.com/user-attachments/assets/f04b6eaa-0f6a-4ef6-9547-17f81a11c9ac" />
 
 ---
 
@@ -89,10 +87,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Tocar cualquiera avanza a Categoría con tipo preseleccionado
 **Captura**
+<img width="780" height="1768" alt="screen" src="https://github.com/user-attachments/assets/6b9ced80-634f-4e2e-aaab-61e6106bfe76" />
+<img width="2560" height="1600" alt="screen" src="https://github.com/user-attachments/assets/44a9a741-022a-4258-a0d5-5a221efac831" />
 
-![transaccionMovil](docs\img\prototipos\movil\selección_de_tipo_(toque_1)\screen.png)
-
-![transaccionWeb](docs\img\prototipos\web\selección_de_tipo_de_movimiento\screen.png)
 
 ---
 
@@ -114,9 +111,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Un toque selecciona la categoría y avanza automáticamente a Monto
 **Captura**
-![categoriaMovil](docs\img\prototipos\movil\selección_de_categoría_(toque_2)\screen.png)
+<img width="780" height="1768" alt="screen" src="https://github.com/user-attachments/assets/7091ff6b-550f-4de1-b3a4-26be0a985ff4" />
+<img width="2560" height="1600" alt="screen" src="https://github.com/user-attachments/assets/7fe1e052-85e6-4fd7-afac-1bc1860a03b7" />
 
-![categoriaWeb](docs\img\prototipos\web\selección_de_categoría\screen.png)
 
 ---
 
@@ -138,9 +135,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Entrada directa al display. "Aceptar" finaliza el registro base
 **Captura**
-![montoMovil](docs\img\prototipos\movil\ingreso_de_monto_(toque_3)\screen.png)
+<img width="780" height="1768" alt="screen" src="https://github.com/user-attachments/assets/c45e7b3b-89c9-40a5-98a2-12d7695f24b7" />
+<img width="2560" height="1600" alt="screen" src="https://github.com/user-attachments/assets/dd02a777-d118-4e77-b348-bece3eb5fd59" />
 
-![montoWeb](docs\img\prototipos\web\ingreso_de_monto\screen.png)
 
 ---
 
@@ -160,10 +157,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Desaparición automática después de 1-2 segundos, retorno al Dashboard
 **Captura**
+<img width="780" height="1768" alt="screen" src="https://github.com/user-attachments/assets/d6f617f6-6394-4fa5-ae36-32aed2daefaa" />
+<img width="2560" height="1600" alt="screen" src="https://github.com/user-attachments/assets/7d1e2c41-4dfa-4a12-a9c1-f0f3707b0a25" />
 
-![confirmacionMovil](docs\img\prototipos\movil\confirmación_(toque_4)\screen.png)
-
-![confirmacionWeb](docs\img\prototipos\web\confirmación_de_registro\screen.png)
 
 ---
 
