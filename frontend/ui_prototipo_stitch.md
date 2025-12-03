@@ -43,9 +43,11 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Validación de credenciales → Redirección al Dashboard
 **Captura**
-![loginMovil](\docs\img\prototipos\movil\login\screen.png)
 
-![loginWeb](\docs\img\prototipos\web\iniciar_sesión\screen.png)
+![loginMovil](docs\img\prototipos\movil\login\screen.png)
+
+![loginWeb](docs\img\prototipos\web\iniciar_sesión\screen.png)
+
 ---
 
 ### 2. Dashboard (Inicio)
@@ -65,8 +67,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: El botón "+" inicia el flujo de registro
 **Captura**
-![dashMovil](\docs\img\prototipos\movil\dashboard_(home)\screen.png)
-![DashWeb](\docs\img\prototipos\web\dashboard_(inicio)\screen.png)
+![dashMovil](docs\img\prototipos\movil\dashboard_(home)\screen.png)
+
+![DashWeb](docs\img\prototipos\web\dashboard_(inicio)\screen.png)
 
 ---
 
@@ -87,8 +90,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 **Interacción**: Tocar cualquiera avanza a Categoría con tipo preseleccionado
 **Captura**
 
-![transaccionMovil](\docs\img\prototipos\movil\selección_de_tipo_(toque_1)\screen.png)
-![transaccionWeb](\docs\img\prototipos\web\selección_de_tipo_de_movimiento\screen.png)
+![transaccionMovil](docs\img\prototipos\movil\selección_de_tipo_(toque_1)\screen.png)
+
+![transaccionWeb](docs\img\prototipos\web\selección_de_tipo_de_movimiento\screen.png)
 
 ---
 
@@ -110,8 +114,10 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Un toque selecciona la categoría y avanza automáticamente a Monto
 **Captura**
-![categoriaMovil](\docs\img\prototipos\movil\selección_de_categoría_(toque_2)\screen.png)
-![categoriaWeb](\docs\img\prototipos\web\selección_de_categoría\screen.png)
+![categoriaMovil](docs\img\prototipos\movil\selección_de_categoría_(toque_2)\screen.png)
+
+![categoriaWeb](docs\img\prototipos\web\selección_de_categoría\screen.png)
+
 ---
 
 ### 5. Ingreso de Monto (Toque 3)
@@ -132,8 +138,9 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Entrada directa al display. "Aceptar" finaliza el registro base
 **Captura**
-![montoMovil](\docs\img\prototipos\movil\ingreso_de_monto_(toque_3)\screen.png)
-![montoWeb](\docs\img\prototipos\web\ingreso_de_monto\screen.png)
+![montoMovil](docs\img\prototipos\movil\ingreso_de_monto_(toque_3)\screen.png)
+
+![montoWeb](docs\img\prototipos\web\ingreso_de_monto\screen.png)
 
 ---
 
@@ -153,8 +160,11 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 
 **Interacción**: Desaparición automática después de 1-2 segundos, retorno al Dashboard
 **Captura**
-![confirmacionMovil](\docs\img\prototipos\movil\confirmación_(toque_4)\screen.png)
-![confirmacionWeb](\docs\img\prototipos\web\confirmación_de_registro\screen.png)
+
+![confirmacionMovil](docs\img\prototipos\movil\confirmación_(toque_4)\screen.png)
+
+![confirmacionWeb](docs\img\prototipos\web\confirmación_de_registro\screen.png)
+
 ---
 
 ### 7. Notificación de Detalles (Post-Registro)
