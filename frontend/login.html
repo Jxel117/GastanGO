@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Inicia sesión en GastanGO para gestionar tus finanzas personales">
+  <title>Iniciar Sesión - GastanGO</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#1152d4',
+              hover: '#0d3fa3',
+            },
+            background: {
+              light: '#f6f6f8',
+              dark: '#101622',
+            },
+          },
+          fontFamily: {
+            display: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            DEFAULT: '1rem',
+            lg: '1.5rem',
+            xl: '2rem',
+          },
+        },
+      },
+    };
+  </script>
+  
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    
+    /* Mejora visual para inputs con foco */
+    .form-input:focus {
+      box-shadow: 0 0 0 3px rgba(17, 82, 212, 0.1);
+    }
+    
+    /* Animación suave para el botón de mostrar contraseña */
+    .password-toggle:active {
+      transform: scale(0.95);
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-background-light font-display antialiased dark:bg-background-dark">
+  <!-- Skip to main content -->
+  <a href="#login-form" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white">
+    Saltar al formulario
+  </a>
+
+  <main class="flex min-h-screen flex-col items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
+    <!-- Login Container -->
+    <article class="w-full max-w-md space-y-6">
+      <!-- Logo -->
+      <header class="flex flex-col items-center space-y-6">
+        <div class="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-lg" aria-hidden="true">
+          <span class="material-symbols-outlined text-4xl text-white">trending_up</span>
+        </div>
+        
+        <hgroup class="text-center">
+          <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-4xl">
+            Iniciar Sesión
+          </h1>
+          <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
+            Bienvenido de nuevo a GastanGO
+          </p>
+        </hgroup>
+      </header>
+
+      <!-- Login Form -->
+      <form id="login-form" class="space-y-5" novalidate aria-label="Formulario de inicio de sesión">
+        <!-- Email Field -->
+        <div class="space-y-2">
+          <label for="email" class="block text-base font-medium text-gray-900 dark:text-gray-200">
+            Email
+          </label>
+          <input
+            type="email"
+            id="email"
+            name="email"
+            autocomplete="email"
+            required
+            class="form-input block w-full rounded-xl border border-gray-300 bg-white px-4 py-3.5 text-base text-gray-900 placeholder-gray-500 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 dark:border-gray-700 dark:bg-background-dark dark:text-white dark:placeholder-gray-500"
+            placeholder="tu@email.com"
+            aria-describedby="email-error"
+          />
+          <p id="email-error" class="hidden text-sm text-red-600 dark:text-red-400" role="alert">
+            Por favor ingresa un email válido
+          </p>
+        </div>
+
+        <!-- Password Field -->
+        <div class="space-y-2">
+          <label for="password" class="block text-base font-medium text-gray-900 dark:text-gray-200">
+            Contraseña
+          </label>
+          <div class="relative">
+            <input
+              type="password"
+              id="password"
+              name="password"
+              autocomplete="current-password"
+              required
+              minlength="8"
+              class="form-input block w-full rounded-xl border border-gray-300 bg-white px-4 py-3.5 pr-12 text-base text-gray-900 placeholder-gray-500 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/50 dark:border-gray-700 dark:bg-background-dark dark:text-white dark:placeholder-gray-500"
+              placeholder="Contraseña"
+              aria-describedby="password-error"
+            />
+            <button
+              type="button"
+              class="password-toggle absolute inset-y-0 right-0 flex items-center px-4 text-gray-600 transition-colors hover:text-gray-900 focus:outline-none focus:text-primary dark:text-gray-400 dark:hover:text-gray-200"
+              aria-label="Mostrar contraseña"
+              onclick="togglePassword()"
+            >
+              <span id="password-icon" class="material-symbols-outlined">visibility</span>
+            </button>
+          </div>
+          <p id="password-error" class="hidden text-sm text-red-600 dark:text-red-400" role="alert">
+            La contraseña debe tener al menos 8 caracteres
+          </p>
+        </div>
+
+        <!-- Forgot Password Link -->
+        <div class="flex justify-end">
+          <a 
+            href="#" 
+            class="text-sm font-medium text-primary transition-colors hover:text-primary-hover hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+          >
+            Olvidé mi contraseña
+          </a>
+        </div>
+
+        <!-- Submit Button -->
+        <button
+          type="submit"
+          class="w-full rounded-full bg-primary px-6 py-3.5 text-base font-bold text-white transition-all hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 dark:focus:ring-offset-background-dark"
+        >
+          Iniciar Sesión
+        </button>
+      </form>
+
+      <!-- Sign Up Link -->
+      <footer class="text-center">
+        <p class="text-base text-gray-600 dark:text-gray-400">
+          ¿No tienes una cuenta? 
+          <a 
+            href="#" 
+            class="font-bold text-primary transition-colors hover:text-primary-hover hover:underline focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:focus:ring-offset-background-dark"
+          >
+            Regístrate
+          </a>
+        </p>
+      </footer>
+    </article>
+  </main>
+
+  <!-- JavaScript -->
+  <script>
+    // Toggle password visibility
+    function togglePassword() {
+      const passwordInput = document.getElementById('password');
+      const passwordIcon = document.getElementById('password-icon');
+      const button = event.currentTarget;
+      
+      if (passwordInput.type === 'password') {
+        passwordInput.type = 'text';
+        passwordIcon.textContent = 'visibility_off';
+        button.setAttribute('aria-label', 'Ocultar contraseña');
+      } else {
+        passwordInput.type = 'password';
+        passwordIcon.textContent = 'visibility';
+        button.setAttribute('aria-label', 'Mostrar contraseña');
+      }
+    }
+
+    // Form validation
+    const form = document.getElementById('login-form');
+    const emailInput = document.getElementById('email');
+    const passwordInput = document.getElementById('password');
+    const emailError = document.getElementById('email-error');
+    const passwordError = document.getElementById('password-error');
+
+    // Email validation
+    emailInput.addEventListener('blur', () => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(emailInput.value) && emailInput.value !== '') {
+        emailInput.setAttribute('aria-invalid', 'true');
+        emailInput.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/50');
+        emailError.classList.remove('hidden');
+      } else {
+        emailInput.setAttribute('aria-invalid', 'false');
+        emailInput.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/50');
+        emailError.classList.add('hidden');
+      }
+    });
+
+    // Password validation
+    passwordInput.addEventListener('blur', () => {
+      if (passwordInput.value.length > 0 && passwordInput.value.length < 8) {
+        passwordInput.setAttribute('aria-invalid', 'true');
+        passwordInput.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/50');
+        passwordError.classList.remove('hidden');
+      } else {
+        passwordInput.setAttribute('aria-invalid', 'false');
+        passwordInput.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/50');
+        passwordError.classList.add('hidden');
+      }
+    });
+
+    // Form submission
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Basic validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isEmailValid = emailRegex.test(emailInput.value);
+      const isPasswordValid = passwordInput.value.length >= 8;
+      
+      if (isEmailValid && isPasswordValid) {
+        console.log('Form submitted successfully');
+        // Add your login logic here
+        // Example: fetch('/api/login', { method: 'POST', body: JSON.stringify({ email, password }) })
+      } else {
+        console.log('Form validation failed');
+        if (!isEmailValid) emailInput.focus();
+        else if (!isPasswordValid) passwordInput.focus();
+      }
+    });
+
+    // Auto-dismiss validation errors on input
+    emailInput.addEventListener('input', () => {
+      if (emailInput.getAttribute('aria-invalid') === 'true') {
+        emailInput.setAttribute('aria-invalid', 'false');
+        emailInput.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/50');
+        emailError.classList.add('hidden');
+      }
+    });
+
+    passwordInput.addEventListener('input', () => {
+      if (passwordInput.getAttribute('aria-invalid') === 'true') {
+        passwordInput.setAttribute('aria-invalid', 'false');
+        passwordInput.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500/50');
+        passwordError.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>

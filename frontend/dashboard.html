@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Dashboard de GastanGO - Visualiza tu saldo, ingresos, gastos y movimientos recientes">
+  <title>Dashboard - GastanGO</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#1152d4',
+              hover: '#0d3fa3',
+            },
+            background: {
+              light: '#f6f6f8',
+              dark: '#101622',
+            },
+          },
+          fontFamily: {
+            display: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            DEFAULT: '1rem',
+            lg: '1.5rem',
+            xl: '2rem',
+          },
+        },
+      },
+    };
+  </script>
+  
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    
+    /* Smooth scroll */
+    html {
+      scroll-behavior: smooth;
+    }
+    
+    /* Animation for stats cards */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .animate-fade-in-up {
+      animation: fadeInUp 0.5s ease-out forwards;
+    }
+    
+    /* FAB pulse animation */
+    @keyframes pulse-ring {
+      0% {
+        box-shadow: 0 0 0 0 rgba(17, 82, 212, 0.4);
+      }
+      100% {
+        box-shadow: 0 0 0 10px rgba(17, 82, 212, 0);
+      }
+    }
+    
+    .fab-pulse:hover {
+      animation: pulse-ring 1s ease-out infinite;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-background-light font-display antialiased dark:bg-background-dark">
+  <!-- Skip to main content -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white">
+    Saltar al contenido principal
+  </a>
+
+  <!-- Header -->
+  <header class="sticky top-0 z-40 w-full border-b border-gray-200 bg-background-light/95 backdrop-blur-sm dark:border-gray-800 dark:bg-background-dark/95">
+    <nav class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8" aria-label="Navegación principal">
+      <div class="flex h-16 items-center justify-between">
+        <!-- Logo and Brand -->
+        <div class="flex items-center gap-3">
+          <svg 
+            class="h-6 w-6 text-primary" 
+            viewBox="0 0 48 48" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path 
+              d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" 
+              fill="currentColor" 
+              fill-rule="evenodd" 
+              clip-rule="evenodd"
+            />
+          </svg>
+          <h1 class="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+            GastanGO
+          </h1>
+        </div>
+
+        <!-- Desktop Navigation -->
+        <ul class="hidden items-center gap-8 md:flex">
+          <li>
+            <a 
+              href="#" 
+              class="text-sm font-medium text-gray-700 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:text-gray-300 dark:hover:text-primary dark:focus:ring-offset-background-dark"
+            >
+              Reportes
+            </a>
+          </li>
+          <li>
+            <a 
+              href="#" 
+              class="text-sm font-medium text-gray-700 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:text-gray-300 dark:hover:text-primary dark:focus:ring-offset-background-dark"
+            >
+              Perfil
+            </a>
+          </li>
+          <li>
+            <a 
+              href="#" 
+              class="text-sm font-medium text-gray-700 transition-colors hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:text-gray-300 dark:hover:text-primary dark:focus:ring-offset-background-dark"
+            >
+              Ajustes
+            </a>
+          </li>
+        </ul>
+
+        <!-- Mobile Menu Button -->
+        <button 
+          type="button"
+          class="md:hidden rounded-lg p-2 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary dark:text-gray-300 dark:hover:bg-gray-800"
+          aria-label="Abrir menú de navegación"
+          onclick="toggleMobileMenu()"
+        >
+          <span class="material-symbols-outlined">menu</span>
+        </button>
+      </div>
+
+      <!-- Mobile Navigation (Hidden by default) -->
+      <ul id="mobile-menu" class="hidden border-t border-gray-200 py-4 dark:border-gray-800 md:hidden">
+        <li>
+          <a href="#" class="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+            Reportes
+          </a>
+        </li>
+        <li>
+          <a href="#" class="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+            Perfil
+          </a>
+        </li>
+        <li>
+          <a href="#" class="block px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800">
+            Ajustes
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content" class="mx-auto max-w-7xl px-4 py-8 sm:px-6 md:py-12 lg:px-8">
+    <!-- Stats Cards -->
+    <section aria-labelledby="stats-heading" class="mb-8">
+      <h2 id="stats-heading" class="sr-only">Estadísticas financieras</h2>
+      
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Current Balance Card -->
+        <article class="animate-fade-in-up rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50" style="animation-delay: 0.1s">
+          <h3 class="text-base font-medium text-gray-600 dark:text-gray-400">
+            Saldo Actual
+          </h3>
+          <p class="mt-2 text-4xl font-bold tracking-tight text-gray-900 dark:text-white">
+            $1,234.56
+          </p>
+        </article>
+
+        <!-- Monthly Income Card -->
+        <article class="animate-fade-in-up rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50" style="animation-delay: 0.2s">
+          <h3 class="text-base font-medium text-gray-600 dark:text-gray-400">
+            Ingresos (Mes)
+          </h3>
+          <p class="mt-2 text-4xl font-bold tracking-tight text-green-600 dark:text-green-500">
+            $1,500.00
+          </p>
+        </article>
+
+        <!-- Monthly Expenses Card -->
+        <article class="animate-fade-in-up rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md dark:border-gray-800 dark:bg-gray-800/50" style="animation-delay: 0.3s">
+          <h3 class="text-base font-medium text-gray-600 dark:text-gray-400">
+            Gastos (Mes)
+          </h3>
+          <p class="mt-2 text-4xl font-bold tracking-tight text-red-600 dark:text-red-500">
+            -$265.44
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <!-- Recent Transactions -->
+    <section aria-labelledby="transactions-heading">
+      <h2 id="transactions-heading" class="mb-6 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+        Movimientos Recientes
+      </h2>
+
+      <!-- Transactions Table -->
+      <div class="overflow-hidden rounded-lg border border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-800/50">
+        <div class="overflow-x-auto">
+          <table class="w-full min-w-full divide-y divide-gray-200 dark:divide-gray-800">
+            <thead class="bg-gray-50 dark:bg-gray-900/50">
+              <tr>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Transacción
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Categoría
+                </th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Fecha
+                </th>
+                <th scope="col" class="px-6 py-3 text-right text-xs font-medium uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                  Monto
+                </th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 bg-white dark:divide-gray-800 dark:bg-gray-800/50">
+              <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/20">
+                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-200">
+                  Café de la mañana
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  Comida
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <time datetime="2023-10-26">Oct 26, 2023</time>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-red-600 dark:text-red-500">
+                  -$4.50
+                </td>
+              </tr>
+              <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/20">
+                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-200">
+                  Pago de salario
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  Ingresos
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <time datetime="2023-10-25">Oct 25, 2023</time>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-green-600 dark:text-green-500">
+                  +$1,500.00
+                </td>
+              </tr>
+              <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/20">
+                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-200">
+                  Suscripción a Spotify
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  Entretenimiento
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <time datetime="2023-10-24">Oct 24, 2023</time>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-red-600 dark:text-red-500">
+                  -$9.99
+                </td>
+              </tr>
+              <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/20">
+                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-200">
+                  Compras del supermercado
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  Comestibles
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <time datetime="2023-10-23">Oct 23, 2023</time>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-red-600 dark:text-red-500">
+                  -$78.12
+                </td>
+              </tr>
+              <tr class="transition-colors hover:bg-gray-50 dark:hover:bg-gray-900/20">
+                <td class="whitespace-nowrap px-6 py-4 text-sm font-medium text-gray-900 dark:text-gray-200">
+                  Boleto de cine
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  Entretenimiento
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
+                  <time datetime="2023-10-22">Oct 22, 2023</time>
+                </td>
+                <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium text-red-600 dark:text-red-500">
+                  -$15.00
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Floating Action Button (FAB) -->
+  <button
+    type="button"
+    class="fab-pulse fixed bottom-8 right-8 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:bg-primary-hover hover:scale-110 focus:outline-none focus:ring-4 focus:ring-primary/50 active:scale-95"
+    aria-label="Agregar nueva transacción"
+    onclick="addTransaction()"
+  >
+    <span class="material-symbols-outlined text-3xl" aria-hidden="true">add</span>
+  </button>
+
+  <!-- JavaScript -->
+  <script>
+    // Mobile menu toggle
+    function toggleMobileMenu() {
+      const menu = document.getElementById('mobile-menu');
+      menu.classList.toggle('hidden');
+    }
+
+    // Add transaction handler
+    function addTransaction() {
+      console.log('Add transaction clicked');
+      // Navigate to transaction form
+      // window.location.href = '/add-transaction';
+    }
+
+    // Close mobile menu when clicking outside
+    document.addEventListener('click', (e) => {
+      const menu = document.getElementById('mobile-menu');
+      const menuButton = document.querySelector('[aria-label="Abrir menú de navegación"]');
+      
+      if (!menu.contains(e.target) && !menuButton.contains(e.target)) {
+        menu.classList.add('hidden');
+      }
+    });
+
+    // Format currency on load (if needed for dynamic data)
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat('es-MX', {
+        style: 'currency',
+        currency: 'USD'
+      }).format(amount);
+    }
+
+    // Keyboard shortcut for FAB (Ctrl/Cmd + N)
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault();
+        addTransaction();
+      }
+    });
+
+    // Smooth scroll for skip link
+    document.querySelector('a[href="#main-content"]')?.addEventListener('click', (e) => {
+      e.preventDefault();
+      document.getElementById('main-content')?.scrollIntoView({ behavior: 'smooth' });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="es" class="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Selecciona la categoría de tu transacción en GastanGO - Organiza tus gastos e ingresos">
+  <title>Selección de Categoría - GastanGO</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '#1152d4',
+              hover: '#0d3fa3',
+            },
+            background: {
+              light: '#f6f6f8',
+              dark: '#101622',
+            },
+          },
+          fontFamily: {
+            display: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          borderRadius: {
+            DEFAULT: '1rem',
+            lg: '1.5rem',
+            xl: '2rem',
+          },
+        },
+      },
+    };
+  </script>
+  
+  <style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    
+    /* Animation for category cards */
+    @keyframes scaleIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    
+    .category-card {
+      animation: scaleIn 0.3s ease-out forwards;
+    }
+    
+    /* Staggered animation delays */
+    .category-card:nth-child(1) { animation-delay: 0.05s; }
+    .category-card:nth-child(2) { animation-delay: 0.1s; }
+    .category-card:nth-child(3) { animation-delay: 0.15s; }
+    .category-card:nth-child(4) { animation-delay: 0.2s; }
+    .category-card:nth-child(5) { animation-delay: 0.25s; }
+    .category-card:nth-child(6) { animation-delay: 0.3s; }
+    .category-card:nth-child(7) { animation-delay: 0.35s; }
+    .category-card:nth-child(8) { animation-delay: 0.4s; }
+    .category-card:nth-child(9) { animation-delay: 0.45s; }
+    .category-card:nth-child(10) { animation-delay: 0.5s; }
+    .category-card:nth-child(11) { animation-delay: 0.55s; }
+    .category-card:nth-child(12) { animation-delay: 0.6s; }
+    
+    /* Active state */
+    .category-card:active {
+      transform: scale(0.95);
+    }
+    
+    /* Focus state for keyboard navigation */
+    .category-card:focus {
+      outline: 3px solid currentColor;
+      outline-offset: 2px;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-background-light font-display antialiased dark:bg-background-dark">
+  <!-- Skip to main content -->
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-primary focus:text-white">
+    Saltar al contenido principal
+  </a>
+
+  <!-- Header -->
+  <header class="border-b border-gray-200 bg-background-light dark:border-gray-800 dark:bg-background-dark">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+      <div class="flex h-16 items-center justify-between">
+        <!-- Logo and Brand -->
+        <div class="flex items-center gap-3">
+          <svg 
+            class="h-6 w-6 text-primary" 
+            viewBox="0 0 48 48" 
+            fill="none" 
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path 
+              d="M24 4H42V17.3333V30.6667H24V44H6V30.6667V17.3333H24V4Z" 
+              fill="currentColor" 
+              fill-rule="evenodd" 
+              clip-rule="evenodd"
+            />
+          </svg>
+          <h1 class="text-lg font-bold tracking-tight text-gray-900 dark:text-white sm:text-xl">
+            GastanGO
+          </h1>
+        </div>
+
+        <!-- Back Button -->
+        <button 
+          type="button"
+          class="flex items-center gap-2 rounded-full border border-gray-200 bg-background-light px-3 py-2 text-sm font-bold text-gray-900 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 dark:border-gray-800 dark:bg-background-dark dark:text-white dark:hover:bg-gray-900 dark:focus:ring-offset-background-dark sm:px-4"
+          onclick="goBack()"
+          aria-label="Volver a la página anterior"
+        >
+          <span class="material-symbols-outlined text-lg" aria-hidden="true">arrow_back</span>
+          <span class="hidden sm:inline">Atrás</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content" class="mx-auto max-w-5xl px-4 py-8 sm:px-6 md:py-12 lg:px-8">
+    <!-- Page Header -->
+    <header class="mb-8">
+      <h2 class="text-3xl font-black tracking-tight text-gray-900 dark:text-white sm:text-4xl lg:text-5xl">
+        Selecciona la Categoría
+      </h2>
+      <p class="mt-2 text-base text-gray-600 dark:text-gray-400">
+        Elige una categoría para clasificar tu transacción
+      </p>
+    </header>
+
+    <!-- Categories Grid -->
+    <section aria-label="Categorías disponibles">
+      <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4">
+        <!-- Comida -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="comida"
+          onclick="selectCategory('comida')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">restaurant</span>
+          <span class="text-sm font-bold sm:text-base">Comida</span>
+        </button>
+
+        <!-- Transporte -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="transporte"
+          onclick="selectCategory('transporte')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">directions_bus</span>
+          <span class="text-sm font-bold sm:text-base">Transporte</span>
+        </button>
+
+        <!-- Hogar -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="hogar"
+          onclick="selectCategory('hogar')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">home</span>
+          <span class="text-sm font-bold sm:text-base">Hogar</span>
+        </button>
+
+        <!-- Entretenimiento -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="entretenimiento"
+          onclick="selectCategory('entretenimiento')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">confirmation_number</span>
+          <span class="text-sm font-bold sm:text-base">Entretenimiento</span>
+        </button>
+
+        <!-- Salud -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="salud"
+          onclick="selectCategory('salud')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">health_and_safety</span>
+          <span class="text-sm font-bold sm:text-base">Salud</span>
+        </button>
+
+        <!-- Ropa -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="ropa"
+          onclick="selectCategory('ropa')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">checkroom</span>
+          <span class="text-sm font-bold sm:text-base">Ropa</span>
+        </button>
+
+        <!-- Educación -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="educacion"
+          onclick="selectCategory('educacion')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">school</span>
+          <span class="text-sm font-bold sm:text-base">Educación</span>
+        </button>
+
+        <!-- Ahorros -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="ahorros"
+          onclick="selectCategory('ahorros')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">savings</span>
+          <span class="text-sm font-bold sm:text-base">Ahorros</span>
+        </button>
+
+        <!-- Salario -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="salario"
+          onclick="selectCategory('salario')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">payments</span>
+          <span class="text-sm font-bold sm:text-base">Salario</span>
+        </button>
+
+        <!-- Inversiones -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="inversiones"
+          onclick="selectCategory('inversiones')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">show_chart</span>
+          <span class="text-sm font-bold sm:text-base">Inversiones</span>
+        </button>
+
+        <!-- Regalos -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="regalos"
+          onclick="selectCategory('regalos')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">card_giftcard</span>
+          <span class="text-sm font-bold sm:text-base">Regalos</span>
+        </button>
+
+        <!-- Mascotas -->
+        <button 
+          type="button"
+          class="category-card flex flex-col items-center gap-3 rounded-lg border border-gray-200 bg-white p-4 text-gray-800 transition-all hover:border-primary hover:bg-primary/5 hover:shadow-md focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-gray-800 dark:bg-gray-900/50 dark:text-gray-200 dark:hover:bg-primary/10 dark:focus-visible:ring-offset-background-dark sm:p-6"
+          data-category="mascotas"
+          onclick="selectCategory('mascotas')"
+        >
+          <span class="material-symbols-outlined text-4xl text-primary sm:text-5xl" aria-hidden="true">pets</span>
+          <span class="text-sm font-bold sm:text-base">Mascotas</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Quick Stats (Optional) -->
+    <aside class="mt-8 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900/50">
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        <strong>Tip:</strong> Usa las teclas numéricas (1-12) para seleccionar rápidamente una categoría
+      </p>
+    </aside>
+  </main>
+
+  <!-- JavaScript -->
+  <script>
+    // Go back functionality
+    function goBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = '/dashboard';
+      }
+    }
+
+    // Category selection
+    function selectCategory(category) {
+      console.log(`Category selected: ${category}`);
+      
+      // Add visual feedback
+      const selectedCard = document.querySelector(`[data-category="${category}"]`);
+      selectedCard.classList.add('ring-2', 'ring-primary', 'ring-offset-2');
+      
+      // Navigate to next step after short delay for visual feedback
+      setTimeout(() => {
+        // window.location.href = `/transaction-details?category=${category}`;
+        console.log(`Navigating to transaction details with category: ${category}`);
+      }, 300);
+    }
+
+    // Keyboard shortcuts (1-12 for categories)
+    document.addEventListener('keydown', (e) => {
+      const categoryButtons = document.querySelectorAll('.category-card');
+      const key = parseInt(e.key);
+      
+      if (key >= 1 && key <= categoryButtons.length) {
+        e.preventDefault();
+        categoryButtons[key - 1].click();
+      }
+      
+      // ESC to go back
+      if (e.key === 'Escape') {
+        goBack();
+      }
+    });
+
+    // Keyboard navigation with arrow keys
+    const categoryCards = document.querySelectorAll('.category-card');
+    let currentFocusIndex = -1;
+
+    categoryCards.forEach((card, index) => {
+      card.addEventListener('focus', () => {
+        currentFocusIndex = index;
+      });
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        e.preventDefault();
+        
+        const cols = window.innerWidth >= 1024 ? 4 : window.innerWidth >= 768 ? 4 : window.innerWidth >= 640 ? 3 : 2;
+        let newIndex = currentFocusIndex;
+
+        switch(e.key) {
+          case 'ArrowRight':
+            newIndex = Math.min(currentFocusIndex + 1, categoryCards.length - 1);
+            break;
+          case 'ArrowLeft':
+            newIndex = Math.max(currentFocusIndex - 1, 0);
+            break;
+          case 'ArrowDown':
+            newIndex = Math.min(currentFocusIndex + cols, categoryCards.length - 1);
+            break;
+          case 'ArrowUp':
+            newIndex = Math.max(currentFocusIndex - cols, 0);
+            break;
+        }
+
+        if (newIndex !== currentFocusIndex) {
+          categoryCards[newIndex].focus();
+        }
+      }
+    });
+
+    // Initialize first card as focused
+    if (categoryCards.length > 0) {
+      categoryCards[0].focus();
+    }
+  </script>
+</body>
+</html>
