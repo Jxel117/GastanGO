@@ -44,7 +44,7 @@ El flujo de diseño cubre el ciclo de vida completo de una transacción en Gasta
 **Interacción**: Validación de credenciales → Redirección al Dashboard
 **Captura**
 
-![loginMovil](docs\img\prototipos\movil\login\screen.png)
+![loginMovil](docs/img/prototipos/movil/login/screen.png)
 
 ![loginWeb](docs\img\prototipos\web\iniciar_sesión\screen.png)
 
