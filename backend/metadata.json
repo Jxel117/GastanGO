@@ -1,0 +1,5 @@
+{
+  "name": "GastanGO Backend",
+  "description": "Backend API for the GastanGO personal finance management application, built with Node.js, Express, and PostgreSQL.",
+  "requestFramePermissions": []
+}
