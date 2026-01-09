@@ -31,6 +31,15 @@ export const AuthProvider = ({ children }) => {
     setUser(userRes.data);
   };
   
+  const register = async (username, email, password) => {
+    // 1. Enviar datos de registro al backend
+    // Path: /api/auth/register (según tu configuración de axios + swagger)
+    await api.post('/auth/register', { 
+        username, 
+        email, 
+        password 
+    });
+  };
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -38,7 +47,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, loading }}>
+    <AuthContext.Provider value={{ user, login, logout, loading, register }}>
       {children}
     </AuthContext.Provider>
   );

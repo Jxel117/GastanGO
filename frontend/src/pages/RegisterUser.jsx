@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast, { Toaster } from 'react-hot-toast';
 import CardTransition from './components/CardTransition';
+import { AuthContext } from '../context/AuthContext';
 
 // --- LISTA NEGRA DE CONTRASEÑAS (Top 50 más inseguras) ---
 const WEAK_PASSWORDS = [
@@ -15,6 +16,7 @@ const WEAK_PASSWORDS = [
 
 const RegisterUser = () => {
   const navigate = useNavigate();
+  const { register } = useContext(AuthContext);
   
   const [formData, setFormData] = useState({
     username: '',
@@ -73,6 +75,30 @@ const RegisterUser = () => {
   };
 
   const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+
+    try {
+      // 4. CONEXIÓN REAL AL BACKEND
+      // Llamamos al register del Contexto
+      await register(formData.username, formData.email, formData.password);
+      
+      toast.success('¡Cuenta creada con éxito! Inicie sesión para continuar.');
+      
+      // Como el register hace Auto-Login, vamos directo al Dashboard
+      // Damos un pequeño delay para que el usuario vea el toast de éxito
+      setTimeout(() => navigate('/login'), 1500);
+
+    } catch (error) {
+      console.error(error);
+      // Extraemos el mensaje de error del backend si existe
+      const errorMessage = error.response?.data?.message || 'Error al registrar usuario.';
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
+    }
     e.preventDefault();
     if (!validateForm()) return;
 
