@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
     const userRes = await api.get('/users/me');
     setUser(userRes.data);
   };
+  
 
   const logout = () => {
     localStorage.removeItem('token');
