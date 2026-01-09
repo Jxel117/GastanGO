@@ -1,174 +1,222 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart, Bar, XAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import CardTransition from '../pages/components/CardTransition';
+import api from '../services/api';
+import toast from 'react-hot-toast';
 
-// --- ESTILO PROFESIONAL ---
-// Definimos esta clase constante para no repetir código y mantener consistencia.
-// hover:shadow-xl -> Aumenta la sombra
-// hover:-translate-y-1 -> Sube la tarjeta ligeramente hacia arriba
-// hover:scale-[1.02] -> La agranda un 2% (muy sutil)
-// transition-all duration-300 ease-out -> Suaviza la animación
-const cardClassName = "bg-white p-6 rounded-[24px] shadow-sm border border-gray-100 transition-all duration-300 ease-out hover:shadow-[0_20px_25px_-5px_rgba(0,0,0,0.1),0_10px_10px_-5px_rgba(0,0,0,0.04)] hover:-translate-y-1 hover:scale-[1.02] cursor-pointer relative z-0 hover:z-10";
-
-// --- DATOS MOCK ---
-const chartData = [
-  { name: 'May', ingresos: 4000, gastos: 2400 },
-  { name: 'Jun', ingresos: 3000, gastos: 1398 },
-  { name: 'Jul', ingresos: 2000, gastos: 6800 },
-  { name: 'Ago', ingresos: 2780, gastos: 3908 },
-  { name: 'Sep', ingresos: 1890, gastos: 4800 },
-  { name: 'Oct', ingresos: 2390, gastos: 3800 },
-];
-
-const categoryData = [
-  { name: 'Vivienda', amount: 850.00, color: 'bg-blue-500', width: '65%' },
-  { name: 'Comida', amount: 320.00, color: 'bg-purple-500', width: '25%' },
-  { name: 'Transporte', amount: 150.00, color: 'bg-emerald-500', width: '15%' },
-  { name: 'Otros', amount: 80.00, color: 'bg-orange-500', width: '8%' },
-];
-
-const recentTransactions = [
-  { id: 1, name: 'Café de la mañana', category: 'Comida', date: 'Oct 26, 2023', amount: -4.50, type: 'gasto' },
-  { id: 2, name: 'Pago de salario', category: 'Ingresos', date: 'Oct 25, 2023', amount: 1500.00, type: 'ingreso' },
-  { id: 3, name: 'Suscripción a Spotify', category: 'Entretenimiento', date: 'Oct 24, 2023', amount: -9.99, type: 'gasto' },
-  { id: 4, name: 'Compras supermercado', category: 'Comestibles', date: 'Oct 23, 2023', amount: -78.12, type: 'gasto' },
-  { id: 5, name: 'Boleto de cine', category: 'Entretenimiento', date: 'Oct 22, 2023', amount: -15.00, type: 'gasto' },
-];
+// Estilo base de tarjetas
+const cardClassName = "bg-white p-5 rounded-[20px] shadow-sm border border-gray-100 flex flex-col justify-between transition-all duration-300 hover:shadow-md";
 
 const Dashboard = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  
+  // KPIs
+  const [totalBalance, setTotalBalance] = useState(0);
+  const [totalIncome, setTotalIncome] = useState(0);
+  const [totalExpense, setTotalExpense] = useState(0);
+
+  // Gráficos
+  const [chartData, setChartData] = useState([]);
+  const [categoryData, setCategoryData] = useState([]);
+
+  useEffect(() => {
+    const fetchTransactions = async () => {
+      try {
+        const { data } = await api.get('/transactions');
+        const list = Array.isArray(data) ? data : data.transactions || [];
+        setTransactions(list);
+        calculateFinancials(list);
+        processChartData(list);
+        processCategoryData(list);
+      } catch (error) {
+        toast.error("Error cargando datos");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchTransactions();
+  }, []);
+
+  const calculateFinancials = (list) => {
+    let income = 0;
+    let expense = 0;
+    list.forEach(tx => {
+      const amt = parseFloat(tx.amount);
+      tx.type === 'income' ? income += amt : expense += amt;
+    });
+    setTotalIncome(income);
+    setTotalExpense(expense);
+    setTotalBalance(income - expense);
+  };
+
+  const processChartData = (list) => {
+    const monthsMap = {};
+    const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+    list.forEach(tx => {
+      const date = new Date(tx.date || tx.createdAt);
+      const mName = monthNames[date.getMonth()];
+      if (!monthsMap[mName]) monthsMap[mName] = { name: mName, ingresos: 0, gastos: 0, order: date.getMonth() };
+      tx.type === 'income' ? monthsMap[mName].ingresos += parseFloat(tx.amount) : monthsMap[mName].gastos += parseFloat(tx.amount);
+    });
+    setChartData(Object.values(monthsMap).sort((a, b) => a.order - b.order));
+  };
+
+  const processCategoryData = (list) => {
+    const expenses = list.filter(tx => tx.type === 'expense');
+    const totalExp = expenses.reduce((acc, curr) => acc + parseFloat(curr.amount), 0);
+    const catMap = {};
+    const colors = { 'Comida': 'bg-purple-500', 'Transporte': 'bg-emerald-500', 'Vivienda': 'bg-blue-500', 'Entretenimiento': 'bg-orange-500', 'Salud': 'bg-red-400' };
+
+    expenses.forEach(tx => {
+      if (!catMap[tx.category]) catMap[tx.category] = 0;
+      catMap[tx.category] += parseFloat(tx.amount);
+    });
+
+    setCategoryData(Object.keys(catMap).map(key => ({
+      name: key,
+      amount: catMap[key],
+      color: colors[key] || 'bg-gray-400',
+      width: totalExp > 0 ? `${(catMap[key] / totalExp) * 100}%` : '0%'
+    })).sort((a, b) => b.amount - a.amount).slice(0, 4));
+  };
+
+  const formatCurrency = (amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(Math.abs(amount));
+  const formatDate = (dateString) => new Date(dateString).toLocaleDateString('es-ES', { month: 'short', day: 'numeric' });
+
+  if (loading) return <div className="flex h-full items-center justify-center"><span className="loader"></span></div>;
+
   return (
     <CardTransition>
-        <div className="space-y-8">
+        <div className="flex flex-col gap-6 h-full w-full">
             
-            {/* 1. SECCIÓN DE TARJETAS SUPERIORES (KPIs) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* --- FILA 1: KPIs y BANNER QR (Ocupando todo el ancho) --- */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
                 
-                {/* Card Saldo */}
+                {/* KPI 1: Saldo */}
                 <div className={cardClassName}>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-full">
-                            <span className="material-symbols-outlined text-[20px]">account_balance</span>
-                        </div>
-                        <span className="text-gray-500 font-medium text-sm">Saldo Actual</span>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-50 text-blue-600 rounded-full"><span className="material-symbols-outlined">savings</span></div>
+                        <span className="text-gray-500 text-sm font-bold">Saldo Total</span>
                     </div>
-                    <h2 className="text-4xl font-extrabold text-[#111318] tracking-tight">$1,234.56</h2>
+                    <h2 className={`text-3xl font-extrabold mt-2 ${totalBalance < 0 ? 'text-red-500' : 'text-[#111318]'}`}>{formatCurrency(totalBalance)}</h2>
                 </div>
 
-                {/* Card Ingresos */}
+                {/* KPI 2: Ingresos */}
                 <div className={cardClassName}>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-full">
-                             <span className="material-symbols-outlined text-[20px]">trending_up</span>
-                        </div>
-                        <span className="text-gray-500 font-medium text-sm">Ingresos (Mes)</span>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-full"><span className="material-symbols-outlined">trending_up</span></div>
+                        <span className="text-gray-500 text-sm font-bold">Ingresos</span>
                     </div>
-                    <h2 className="text-4xl font-extrabold text-emerald-500 tracking-tight">+$1,500.00</h2>
+                    <h2 className="text-3xl font-extrabold mt-2 text-emerald-500">+{formatCurrency(totalIncome)}</h2>
                 </div>
 
-                {/* Card Gastos */}
+                {/* KPI 3: Gastos */}
                 <div className={cardClassName}>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-red-50 text-red-600 rounded-full">
-                             <span className="material-symbols-outlined text-[20px]">trending_down</span>
-                        </div>
-                        <span className="text-gray-500 font-medium text-sm">Gastos (Mes)</span>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-50 text-red-600 rounded-full"><span className="material-symbols-outlined">trending_down</span></div>
+                        <span className="text-gray-500 text-sm font-bold">Gastos</span>
                     </div>
-                    <h2 className="text-4xl font-extrabold text-red-500 tracking-tight">-$265.44</h2>
+                    <h2 className="text-3xl font-extrabold mt-2 text-red-500">-{formatCurrency(totalExpense)}</h2>
+                </div>
+
+                {/* BANNER QR (Integrado en la fila superior para ahorrar espacio vertical) */}
+                <div className={`${cardClassName} bg-gradient-to-br from-blue-700 to-blue-900 text-white border-none relative overflow-hidden flex-row items-center p-4`}>
+                    <div className="z-10 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className="material-symbols-outlined text-[18px]">smartphone</span>
+                            <h3 className="font-bold text-sm uppercase tracking-wide">App Móvil</h3>
+                        </div>
+                        <p className="text-xs text-blue-100 leading-tight">Escanea para descargar GastanGO.</p>
+                    </div>
+                    <div className="z-10 bg-white p-1 rounded-lg ml-2 flex-shrink-0">
+                         {/* QR Falso */}
+                         <div className="w-12 h-12 bg-gray-900 flex items-center justify-center rounded">
+                            <span className="material-symbols-outlined text-white text-2xl">qr_code_2</span>
+                         </div>
+                    </div>
+                    {/* Decoración fondo */}
+                    <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full blur-xl"></div>
                 </div>
             </div>
 
-            {/* 2. SECCIÓN TABLA - A esta también le aplicamos el efecto sutil */}
-            <div className={`${cardClassName} overflow-hidden p-0 block`}> {/* p-0 porque la tabla necesita llenar el borde */}
-                <div className="p-6 border-b border-gray-50">
-                    <h3 className="text-lg font-bold text-[#111318]">Movimientos Recientes</h3>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="text-xs uppercase text-gray-400 font-semibold tracking-wider border-b border-gray-50">
-                                <th className="px-6 py-4">Transacción</th>
-                                <th className="px-6 py-4">Categoría</th>
-                                <th className="px-6 py-4">Fecha</th>
-                                <th className="px-6 py-4 text-right">Monto</th>
-                            </tr>
-                        </thead>
-                        <tbody className="text-sm">
-                            {recentTransactions.map((tx) => (
-                                <tr key={tx.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0">
-                                    <td className="px-6 py-4 font-medium text-[#111318]">{tx.name}</td>
-                                    <td className="px-6 py-4 text-gray-500">{tx.category}</td>
-                                    <td className="px-6 py-4 text-gray-400">{tx.date}</td>
-                                    <td className={`px-6 py-4 text-right font-bold ${tx.type === 'ingreso' ? 'text-emerald-500' : 'text-red-500'}`}>
-                                        {tx.type === 'ingreso' ? '+' : ''}{tx.amount.toFixed(2)}
-                                    </td>
+            {/* --- FILA 2: CONTENIDO PRINCIPAL (Dividido para ocupar ancho) --- */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1 min-h-0">
+                
+                {/* COLUMNA IZQUIERDA: Tabla (Ocupa 7 columnas) */}
+                <div className={`${cardClassName} lg:col-span-7 p-0 overflow-hidden flex flex-col`}>
+                    <div className="p-5 border-b border-gray-50 flex justify-between items-center bg-white sticky top-0 z-10">
+                        <h3 className="font-bold text-[#111318]">Últimos Movimientos</h3>
+                        <button className="text-xs font-bold text-blue-600 hover:bg-blue-50 px-3 py-1 rounded-full transition-colors">Ver todos</button>
+                    </div>
+                    <div className="overflow-auto flex-1 custom-scrollbar">
+                        <table className="w-full text-left border-collapse">
+                            <thead className="bg-gray-50/50 sticky top-0">
+                                <tr className="text-xs uppercase text-gray-400 font-semibold">
+                                    <th className="px-6 py-3">Detalle</th>
+                                    <th className="px-6 py-3">Categoría</th>
+                                    <th className="px-6 py-3 text-right">Monto</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            {/* 3. SECCIÓN INFERIOR */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                
-                {/* Gastos por Categoría */}
-                <div className={cardClassName}>
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-[#111318]">Gastos por Categoría</h3>
-                        <button className="text-sm text-blue-600 font-semibold hover:underline">Ver todo</button>
-                    </div>
-                    <div className="space-y-6">
-                        {categoryData.map((cat) => (
-                            <div key={cat.name}>
-                                <div className="flex justify-between items-end mb-1">
-                                    <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                                        <span className={`w-3 h-3 rounded-full ${cat.color}`}></span>
-                                        {cat.name}
-                                    </span>
-                                    <span className="text-sm font-bold text-[#111318]">${cat.amount.toFixed(2)}</span>
-                                </div>
-                                <div className="w-full bg-gray-100 rounded-full h-2.5">
-                                    <div 
-                                        className={`h-2.5 rounded-full ${cat.color}`} 
-                                        style={{ width: cat.width }}
-                                    ></div>
-                                </div>
-                            </div>
-                        ))}
+                            </thead>
+                            <tbody className="text-sm">
+                                {transactions.slice().reverse().map((tx) => (
+                                    <tr key={tx._id} className="hover:bg-gray-50/50 border-b border-gray-50 last:border-0">
+                                        <td className="px-6 py-3 font-medium text-gray-900 truncate max-w-[150px]">{tx.description}</td>
+                                        <td className="px-6 py-3">
+                                            <span className="px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-500 border border-gray-200">
+                                                {tx.category}
+                                            </span>
+                                        </td>
+                                        <td className={`px-6 py-3 text-right font-bold ${tx.type === 'income' ? 'text-emerald-500' : 'text-red-500'}`}>
+                                            {tx.type === 'income' ? '+' : '-'}{formatCurrency(tx.amount)}
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                {/* Gráfico de Balance Mensual */}
-                <div className={`${cardClassName} min-h-[350px] flex flex-col`}>
-                    <div className="flex items-center justify-between mb-6">
-                        <h3 className="text-lg font-bold text-[#111318]">Balance Mensual</h3>
-                        <div className="flex gap-3 text-xs font-medium">
-                            <span className="flex items-center gap-1 text-gray-500"><span className="w-2 h-2 rounded-full bg-emerald-500"></span> Ingresos</span>
-                            <span className="flex items-center gap-1 text-gray-500"><span className="w-2 h-2 rounded-full bg-blue-600"></span> Gastos</span>
+                {/* COLUMNA DERECHA: Gráficos (Ocupa 5 columnas) */}
+                <div className="lg:col-span-5 flex flex-col gap-6 h-full">
+                    
+                    {/* Gráfico 1: Barras Balance */}
+                    <div className={`${cardClassName} flex-1 min-h-[200px]`}>
+                        <div className="flex justify-between items-center mb-2">
+                             <h3 className="font-bold text-sm text-[#111318]">Balance Anual</h3>
+                        </div>
+                        <div className="flex-1 w-full min-h-0">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <BarChart data={chartData} barGap={4}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
+                                    <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill:'#9CA3AF', fontSize:10}} dy={10} />
+                                    <Tooltip cursor={{fill:'#f9fafb'}} contentStyle={{borderRadius:'8px', border:'none', boxShadow:'0 4px 6px -1px rgba(0,0,0,0.1)'}} />
+                                    <Bar dataKey="ingresos" fill="#10B981" radius={[2,2,2,2]} barSize={8} />
+                                    <Bar dataKey="gastos" fill="#EF4444" radius={[2,2,2,2]} barSize={8} />
+                                </BarChart>
+                            </ResponsiveContainer>
                         </div>
                     </div>
-                    <div className="h-[250px] w-full flex-1">
-                         <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={chartData} barGap={8}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis 
-                                    dataKey="name" 
-                                    axisLine={false} 
-                                    tickLine={false} 
-                                    tick={{ fill: '#9CA3AF', fontSize: 12 }} 
-                                    dy={10}
-                                />
-                                <Tooltip 
-                                    cursor={{ fill: '#f9fafb' }}
-                                    contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
-                                />
-                                <Bar dataKey="ingresos" fill="#10B981" radius={[4, 4, 4, 4]} barSize={12} />
-                                <Bar dataKey="gastos" fill="#2563EB" radius={[4, 4, 4, 4]} barSize={12} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </div>
 
+                    {/* Gráfico 2: Categorías (Barras de progreso) */}
+                    <div className={`${cardClassName} flex-1 min-h-[180px] justify-start`}>
+                        <h3 className="font-bold text-sm text-[#111318] mb-4">Top Gastos</h3>
+                        <div className="space-y-4 overflow-y-auto custom-scrollbar pr-2">
+                            {categoryData.map((cat) => (
+                                <div key={cat.name}>
+                                    <div className="flex justify-between text-xs mb-1">
+                                        <span className="font-medium text-gray-600">{cat.name}</span>
+                                        <span className="font-bold text-gray-900">{formatCurrency(cat.amount)}</span>
+                                    </div>
+                                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                                        <div className={`h-1.5 rounded-full ${cat.color}`} style={{ width: cat.width }}></div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </CardTransition>
