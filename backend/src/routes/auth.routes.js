@@ -1,6 +1,7 @@
 
 const express = require('express');
-const { register, login } = require('../controllers/auth.controller');
+const { register, login, logout } = require('../controllers/auth.controller');
+const { verifyToken } = require('../middlewares/auth.middleware');
 const { check } = require('express-validator');
 
 const router = express.Router();
@@ -100,6 +101,32 @@ router.post(
     check('password', 'Password is required').exists(),
   ],
   login
+);
+
+/**
+ * @swagger
+ * /api/auth/logout:
+ *   post:
+ *     summary: Log out a user (revoke token)
+ *     tags: [Auth]
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Logout successful
+ *       400:
+ *         description: No token provided
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Token not found
+ *       500:
+ *         description: Server error
+ */
+router.post(
+  '/logout',
+  verifyToken,
+  logout
 );
 
 module.exports = router;

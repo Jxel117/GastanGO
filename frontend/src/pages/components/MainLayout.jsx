@@ -20,8 +20,8 @@ const MainLayout = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     toast.success("Has cerrado sesión");
   };
 
@@ -123,6 +123,9 @@ const MainLayout = () => {
                             <p className="text-xs text-gray-500 truncate">{user?.email}</p>
                         </div>
                         <div className="p-1">
+                             <button onClick={() => navigate('/profile-settings')} className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                                <span className="material-symbols-outlined text-[18px]">edit</span> Editar Perfil
+                            </button>
                              <button onClick={handleLogout} className="w-full flex items-center gap-2 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 rounded-lg mt-1 transition-colors">
                                 <span className="material-symbols-outlined text-[18px]">logout</span> Cerrar Sesión
                             </button>

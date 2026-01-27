@@ -36,7 +36,7 @@ Object.keys(db).forEach(modelName => {
 });
 
 // Definición de las asociaciones (relaciones) entre modelos
-const { User, Transaction, Budget } = db;
+const { User, Transaction, Budget, Token } = db;
 
 // Un usuario puede tener muchas transacciones
 User.hasMany(Transaction, {
@@ -53,6 +53,15 @@ User.hasMany(Budget, {
   onDelete: 'CASCADE',
 });
 Budget.belongsTo(User, {
+  foreignKey: 'userId',
+});
+
+// Un usuario puede tener muchos tokens
+User.hasMany(Token, {
+  foreignKey: 'userId',
+  onDelete: 'CASCADE', // Si se elimina un usuario, se eliminan todos sus tokens
+});
+Token.belongsTo(User, {
   foreignKey: 'userId',
 });
 

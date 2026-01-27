@@ -38,6 +38,26 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    fullName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Nombre completo del usuario',
+    },
+    phone: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'Número de teléfono del usuario',
+    },
+    currency: {
+      type: DataTypes.ENUM('USD', 'EUR', 'ARS', 'MXN'),
+      defaultValue: 'USD',
+      comment: 'Moneda preferida del usuario',
+    },
+    avatar: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: 'URL o ruta de la foto de perfil del usuario',
+    },
   }, {
     sequelize,
     modelName: 'User',

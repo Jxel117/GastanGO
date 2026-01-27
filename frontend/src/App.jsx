@@ -8,6 +8,7 @@ import { AnimatePresence } from 'framer-motion';
 import Login from './pages/Login';
 import RegisterUser from './pages/RegisterUser';
 import Dashboard from './pages/Dashboard';
+import ProfileSettings from './pages/ProfileSettings';
 import MainLayout from './pages/components/MainLayout';
 
 // Imports del Wizard de Transacciones
@@ -42,6 +43,12 @@ const AnimatedRoutes = () => {
              <Route path="/dashboard" element={
                 <PrivateRoute>
                    <Dashboard />
+                </PrivateRoute>
+             } />
+
+             <Route path="/profile-settings" element={
+                <PrivateRoute>
+                   <ProfileSettings />
                 </PrivateRoute>
              } />
 
