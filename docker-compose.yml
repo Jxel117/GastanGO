@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  # --- SERVICIO 1: TU BASE DE DATOS (El corazón) ---
+  db:
+    image: postgres:16-alpine   # Usamos la versión ligera y estable
+    container_name: pern_db_container
+    restart: always             # Si se cae, se levanta solo
+    environment:
+      POSTGRES_USER: Jxel      # <--- USUARIO
+      POSTGRES_PASSWORD: Joeltapia10 # <--- CONTRASEÑA
+      POSTGRES_DB: gastango_db           # <--- NOMBRE DE LA BASE DE DATOS
+    ports:
+      - "5432:5432"             # Puerto PC : Puerto Contenedor
+    volumes:
+      - pg_data:/var/lib/postgresql/data # Aquí se guardan los datos reales
+    networks:
+      - pern_net
+
+  # --- SERVICIO 2: GESTOR VISUAL (Tus ojos) ---
+  # Esto te evitará tener que instalar pgAdmin en Windows.
+  # Entrarás vía navegador web.
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: root
+    ports:
+      - "5050:80"               # Entrarás por http://localhost:5050
+    depends_on:
+      - db
+    networks:
+      - pern_net
+
+# --- VOLUMENES (El Almacén) ---
+volumes:
+  pg_data:                      # Docker gestionará esta carpeta automáticamente
+
+# --- REDES (El cableado interno) ---
+networks:
+  pern_net:

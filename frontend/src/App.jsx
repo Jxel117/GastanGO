@@ -8,7 +8,11 @@ import { AnimatePresence } from 'framer-motion';
 import Login from './pages/Login';
 import RegisterUser from './pages/RegisterUser';
 import Dashboard from './pages/Dashboard';
+import ProfileSettings from './pages/ProfileSettings';
 import MainLayout from './pages/components/MainLayout';
+import Reportes from './pages/Reportes';
+import DetailedReports from './pages/DetailedReports';
+import AccessibilityWidget from './pages/components/AccessibilityWidget';
 
 // Imports del Wizard de Transacciones
 import SeleccionCategoria from './pages/SeleccionCategoria';
@@ -45,6 +49,12 @@ const AnimatedRoutes = () => {
                 </PrivateRoute>
              } />
 
+             <Route path="/profile-settings" element={
+                <PrivateRoute>
+                   <ProfileSettings />
+                </PrivateRoute>
+             } />
+
              {/* --- RUTA DE "PRÓXIMAMENTE" --- */}
              {/* Aquí usamos tu componente de utils */}
              <Route path="/proximamente" element={
@@ -53,6 +63,17 @@ const AnimatedRoutes = () => {
                         title="¡Próximamente!" 
                         message="Estamos construyendo esta funcionalidad para ti." 
                     />
+                </PrivateRoute>
+             } />
+             <Route path="/reportes" element={
+                <PrivateRoute>
+                    <Reportes/>
+                </PrivateRoute>
+             } />
+
+             <Route path="/detailed-reportes" element={
+                <PrivateRoute>
+                    <DetailedReports/>
                 </PrivateRoute>
              } />
 
@@ -83,6 +104,7 @@ function App() {
       <TransactionProvider>
         <Router>
           <AnimatedRoutes />
+          <AccessibilityWidget />
         </Router>
       </TransactionProvider>
     </AuthProvider>

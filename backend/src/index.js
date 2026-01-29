@@ -34,6 +34,10 @@ app.use(require('morgan')(morgan));
 // entiendan y prueben la API sin necesidad de herramientas externas.
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
+// Servir archivos estáticos (avatares/imágenes)
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+
 // 4. Rutas Principales de la API
 // Aquí conectamos nuestro enrutador principal. Todas las rutas definidas en la carpeta /routes
 // estarán prefijadas con '/api'. Por ejemplo, una ruta '/auth/login' se volverá '/api/auth/login'.
