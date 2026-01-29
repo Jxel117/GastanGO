@@ -10,6 +10,9 @@ import RegisterUser from './pages/RegisterUser';
 import Dashboard from './pages/Dashboard';
 import ProfileSettings from './pages/ProfileSettings';
 import MainLayout from './pages/components/MainLayout';
+import Reportes from './pages/Reportes';
+import DetailedReports from './pages/DetailedReports';
+import AccessibilityWidget from './pages/components/AccessibilityWidget';
 
 // Imports del Wizard de Transacciones
 import SeleccionCategoria from './pages/SeleccionCategoria';
@@ -62,6 +65,17 @@ const AnimatedRoutes = () => {
                     />
                 </PrivateRoute>
              } />
+             <Route path="/reportes" element={
+                <PrivateRoute>
+                    <Reportes/>
+                </PrivateRoute>
+             } />
+
+             <Route path="/detailed-reportes" element={
+                <PrivateRoute>
+                    <DetailedReports/>
+                </PrivateRoute>
+             } />
 
              {/* FLUJO DE REGISTRO (WIZARD) */}
              <Route path="/registro/*" element={
@@ -90,6 +104,7 @@ function App() {
       <TransactionProvider>
         <Router>
           <AnimatedRoutes />
+          <AccessibilityWidget />
         </Router>
       </TransactionProvider>
     </AuthProvider>

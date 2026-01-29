@@ -1,1167 +1,614 @@
- import React, { useState, useContext, useEffect } from 'react';
-
+import React, { useState, useContext, useEffect, useRef, useCallback } from 'react';
 import CardTransition from '../pages/components/CardTransition';
-
-import { Toaster } from 'react-hot-toast';
-
-import toast from 'react-hot-toast';
-
+import { Toaster, toast } from 'react-hot-toast';
 import api from '../services/api';
-
 import { AuthContext } from '../context/AuthContext';
+import { 
+  User, Mail, Phone, DollarSign, Camera, Lock, 
+  Save, Info, Upload, AlertCircle, CheckCircle, 
+  Loader2, Eye, EyeOff, RefreshCw
+} from 'lucide-react';
 
+// --- COMPONENTES UI REUTILIZABLES ---
 
-// --- LISTA NEGRA DE CONTRASEÑAS (Top 50 más inseguras) ---
+/**
+ * Componente de Input Seguro y Accesible
+ * Maneja estados de error, iconos y atributos ARIA automáticamente.
+ */
+const FormInput = ({ 
+  label, 
+  id, 
+  error, 
+  icon: Icon, 
+  className = "", 
+  ...props 
+}) => (
+  <div className="flex flex-col gap-2 w-full">
+    <label 
+      htmlFor={id} 
+      className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1 flex items-center gap-1"
+    >
+      {label}
+    </label>
+    <div className="relative group">
+      {Icon && (
+        <Icon 
+          className={`absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 transition-colors ${error ? 'text-red-400' : 'text-gray-400 group-focus-within:text-blue-500'}`} 
+          aria-hidden="true"
+        />
+      )}
+      <input
+        id={id}
+        className={`
+          w-full rounded-xl border bg-gray-50/30 text-gray-700 font-medium placeholder-gray-400
+          transition-all duration-200 focus:outline-none focus:ring-2 focus:bg-white
+          disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed
+          ${Icon ? 'pl-11 pr-4' : 'px-4'} py-3
+          ${error 
+            ? 'border-red-300 focus:border-red-500 focus:ring-red-500/20' 
+            : 'border-gray-200 focus:border-blue-500 focus:ring-blue-500/20'
+          }
+          ${className}
+        `}
+        aria-invalid={!!error}
+        aria-describedby={error ? `${id}-error` : undefined}
+        {...props}
+      />
+    </div>
+    {error && (
+      <div id={`${id}-error`} className="flex items-center gap-1 mt-1 animate-in slide-in-from-top-1 fade-in duration-200">
+        <AlertCircle className="w-3 h-3 text-red-500" />
+        <span className="text-xs font-medium text-red-500" role="alert">{error}</span>
+      </div>
+    )}
+  </div>
+);
 
-const WEAK_PASSWORDS = [
+/**
+ * Contenedor de Tarjeta Estándar
+ */
+const SectionCard = ({ title, icon: Icon, children, className = "" }) => (
+  <div className={`bg-white p-6 rounded-[20px] shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md ${className}`}>
+    {title && (
+      <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
+        {Icon && <Icon className="w-5 h-5 text-blue-600" aria-hidden="true" />}
+        <h3 className="font-bold text-slate-800 text-lg">{title}</h3>
+      </div>
+    )}
+    {children}
+  </div>
+);
 
-  "123456", "password", "123456789", "12345678", "12345", "111111", "1234567", "sunshine",
-
-  "qwerty", "iloveyou", "admin", "welcome", "google", "secret", "123123", "football",
-
-  "monkey", "dragon", "master", "1234567890", "senha", "charlie", "hunter", "princess",
-
-  "access", "cookie", "shadow", "computer", "freedom", "superman", "jordan", "michael",
-
-  "solo", "daniel", "starwars", "hello", "amoremio", "teamo", "pokemon", "naruto",
-
-  "123321", "666666", "000000", "555555", "777777", "888888", "999999", "abcde", "test"
-
-];
-
-
-// --- ESTILOS REUTILIZABLES (Design System) ---
-
-const cardClassName = "bg-white p-6 rounded-[20px] shadow-sm border border-gray-100 transition-all duration-300 hover:shadow-md";
-
-const inputGroupClass = "flex flex-col gap-2";
-
-const labelClass = "text-xs font-bold text-gray-500 uppercase tracking-wide ml-1";
-
-const inputClass = "w-full px-4 py-3 rounded-xl border border-gray-200 text-gray-700 bg-gray-50/30 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 placeholder-gray-400 font-medium";
-
+// --- COMPONENTE PRINCIPAL ---
 
 const ProfileSettings = () => {
-
   const { user } = useContext(AuthContext);
+  const fileInputRef = useRef(null);
 
+  // Estados de UI
   const [loading, setLoading] = useState(false);
-
   const [pageLoading, setPageLoading] = useState(true);
-
   const [avatarUploading, setAvatarUploading] = useState(false);
+  
+  // Visibilidad de contraseñas
+  const [showPasswords, setShowPasswords] = useState({
+    current: false,
+    new: false,
+    confirm: false
+  });
 
-  const [passwordChanging, setPasswordChanging] = useState(false);
-
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-
-  const [showNewPassword, setShowNewPassword] = useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
- 
-
+  // Datos del formulario
   const [formData, setFormData] = useState({
-
     fullName: '',
-
     email: '',
-
     currency: 'USD',
-
     phone: '',
-
     avatar: '',
-
   });
 
-
+  // Datos de contraseña
   const [passwordData, setPasswordData] = useState({
-
     currentPassword: '',
-
     newPassword: '',
-
     confirmPassword: '',
-
   });
 
-
+  // Archivos
   const [selectedFile, setSelectedFile] = useState(null);
-
   const [previewUrl, setPreviewUrl] = useState(null);
 
+  // Errores de validación
+  const [errors, setErrors] = useState({});
 
-  // Cargar datos del usuario autenticado
-
+  // Cargar datos iniciales
   useEffect(() => {
-
+    let isMounted = true;
     const fetchUserData = async () => {
-
       try {
-
         const { data } = await api.get('/users/me');
-
-        setFormData({
-
-          fullName: data.fullName || '',
-
-          email: data.email || '',
-
-          currency: data.currency || 'USD',
-
-          phone: data.phone || '',
-
-          avatar: data.avatar || '',
-
-        });
-
+        if (isMounted) {
+          setFormData({
+            fullName: data.fullName || '',
+            email: data.email || '',
+            currency: data.currency || 'USD',
+            phone: data.phone || '',
+            avatar: data.avatar || '',
+          });
+        }
       } catch (error) {
-
-        console.error('Error cargando datos del usuario:', error);
-
-        toast.error('Error al cargar los datos del perfil');
-
+        console.error('Error fetching user profile:', error);
+        toast.error('No se pudo cargar la información del perfil.');
       } finally {
-
-        setPageLoading(false);
-
+        if (isMounted) setPageLoading(false);
       }
-
     };
-
-   
-
     fetchUserData();
-
+    return () => { isMounted = false; };
   }, []);
 
+  // --- LOGICA DE VALIDACIÓN ---
 
-  // --- VALIDACIONES DE SEGURIDAD (igual que RegisterUser) ---
-
-  const validateProfileForm = () => {
-
-    const { fullName, email, phone, currency } = formData;
-
-    const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-
-   
-
-    if (!email || !emailRegex.test(email)) {
-
-      toast.error('Ingresa un correo electrónico válido.');
-
-      return false;
-
+  const validateProfile = () => {
+    const newErrors = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!formData.email || !emailRegex.test(formData.email)) {
+      newErrors.email = 'Ingresa un correo electrónico válido.';
+    }
+    if (!formData.fullName || formData.fullName.trim().length < 3) {
+      newErrors.fullName = 'El nombre debe tener al menos 3 caracteres.';
+    }
+    // Validación básica de teléfono (solo longitud y caracteres permitidos)
+    if (formData.phone && !/^[+\d\s-]{10,}$/.test(formData.phone)) {
+      newErrors.phone = 'Ingresa un número de teléfono válido (mín. 10 dígitos).';
     }
 
-
-    if (fullName && fullName.trim().length < 3) {
-
-      toast.error('El nombre debe tener al menos 3 caracteres.');
-
-      return false;
-
-    }
-
-
-    if (phone && phone.trim().length < 10) {
-
-      toast.error('El teléfono debe tener al menos 10 caracteres.');
-
-      return false;
-
-    }
-
-
-    if (!['USD', 'EUR', 'ARS', 'MXN'].includes(currency)) {
-
-      toast.error('Selecciona una moneda válida.');
-
-      return false;
-
-    }
-
-
-    return true;
-
+    setErrors(prev => ({ ...prev, ...newErrors }));
+    return Object.keys(newErrors).length === 0;
   };
 
-
-  const validatePasswordForm = () => {
-
+  const validatePassword = () => {
+    const newErrors = {};
     const { currentPassword, newPassword, confirmPassword } = passwordData;
+    
+    // Regex: Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número, 1 símbolo
+    const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
-    const complexityRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{6,}$/;
-
-
-    if (!currentPassword || !newPassword || !confirmPassword) {
-
-      toast.error('Todos los campos de contraseña son requeridos.');
-
-      return false;
-
+    if (!currentPassword) newErrors.currentPassword = 'La contraseña actual es requerida.';
+    
+    if (!newPassword) {
+      newErrors.newPassword = 'La nueva contraseña es requerida.';
+    } else if (!complexityRegex.test(newPassword)) {
+      newErrors.newPassword = 'Debe tener mín. 8 caracteres, mayúscula, número y símbolo.';
     }
-
-
-    if (newPassword.length < 6) {
-
-      toast.error('La nueva contraseña debe tener al menos 6 caracteres.');
-
-      return false;
-
-    }
-
-
-    if (WEAK_PASSWORDS.includes(newPassword.toLowerCase())) {
-
-      toast.error('Contraseña muy insegura. Por favor elige otra.');
-
-      return false;
-
-    }
-
-
-    if (!complexityRegex.test(newPassword)) {
-
-      toast.error('La contraseña debe contener letras y números.');
-
-      return false;
-
-    }
-
 
     if (newPassword !== confirmPassword) {
-
-      toast.error('Las contraseñas nuevas no coinciden.');
-
-      return false;
-
+      newErrors.confirmPassword = 'Las contraseñas no coinciden.';
     }
 
-
-    return true;
-
+    setErrors(prev => ({ ...prev, ...newErrors }));
+    return Object.keys(newErrors).length === 0;
   };
 
+  // --- HANDLERS ---
 
-  // Manejador de cambios en inputs
-
-  const handleChange = (e) => {
-
+  const handleChange = useCallback((e) => {
     const { name, value } = e.target;
-
     setFormData(prev => ({ ...prev, [name]: value }));
+    // Limpiar error al escribir
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+  }, [errors]);
 
-  };
-
-
-  const handlePasswordChange = (e) => {
-
+  const handlePasswordInput = useCallback((e) => {
     const { name, value } = e.target;
-
     setPasswordData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: null }));
+  }, [errors]);
 
+  const togglePasswordVisibility = (field) => {
+    setShowPasswords(prev => ({ ...prev, [field]: !prev[field] }));
   };
-
-
-  // Manejador para seleccionar archivo
 
   const handleFileChange = (e) => {
-
     const file = e.target.files[0];
-
     if (!file) return;
 
-
-    // Validar tipo de archivo
-
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-
+    // Validación estricta de MIME type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-
-      toast.error('Solo se permiten archivos de imagen (JPEG, PNG, GIF, WebP)');
-
+      toast.error('Formato no seguro. Solo usa JPG, PNG o WebP.');
       return;
-
     }
 
-
-    // Validar tamaño (máx 5MB)
-
-    if (file.size > 5 * 1024 * 1024) {
-
-      toast.error('El archivo no debe exceder 5MB');
-
+    // Máximo 2MB para evitar DoS por archivos grandes
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('La imagen debe pesar menos de 2MB.');
       return;
-
     }
-
 
     setSelectedFile(file);
-
-   
-
-    // Mostrar vista previa
-
-    const reader = new FileReader();
-
-    reader.onload = (e) => {
-
-      setPreviewUrl(e.target.result);
-
-    };
-
-    reader.readAsDataURL(file);
-
+    
+    // Limpieza de memoria para preview anterior
+    if (previewUrl) URL.revokeObjectURL(previewUrl);
+    
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
   };
-
-
-  // Cargar avatar al servidor
 
   const handleUploadAvatar = async () => {
-
-    if (!selectedFile) {
-
-      toast.error('Selecciona una imagen primero');
-
-      return;
-
-    }
-
+    if (!selectedFile) return;
 
     setAvatarUploading(true);
-
-    const toastId = toast.loading('Subiendo imagen...');
-
+    const toastId = toast.loading('Procesando imagen...');
     const formDataUpload = new FormData();
-
     formDataUpload.append('avatar', selectedFile);
 
-
     try {
-
       const { data } = await api.post('/users/avatar', formDataUpload, {
-
-        headers: {
-
-          'Content-Type': 'multipart/form-data',
-
-        },
-
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
-
-     
-
+      
       setFormData(prev => ({ ...prev, avatar: data.avatar }));
-
       setSelectedFile(null);
-
       setPreviewUrl(null);
-
-      toast.success('Avatar actualizado correctamente', { id: toastId });
-
+      toast.success('Avatar actualizado', { id: toastId });
     } catch (error) {
-
-      console.error('Error subiendo avatar:', error);
-
-      toast.error(error.response?.data?.msg || 'Error al subir la imagen', { id: toastId });
-
+      console.error('Upload error:', error);
+      toast.error('Error al subir la imagen', { id: toastId });
     } finally {
-
       setAvatarUploading(false);
-
     }
-
   };
 
-
-  // Guardar cambios de perfil
-
-  const handleSave = async () => {
-
-    if (!validateProfileForm()) return;
-
+  const handleSaveProfile = async () => {
+    if (!validateProfile()) return;
 
     setLoading(true);
-
     const toastId = toast.loading('Guardando cambios...');
 
-
     try {
-
-      const { data } = await api.put('/users/me', {
-
-        fullName: formData.fullName,
-
-        email: formData.email,
-
-        phone: formData.phone,
-
+      // Solo enviamos los campos permitidos
+      const payload = {
+        fullName: formData.fullName.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
         currency: formData.currency,
+      };
 
-      });
+      const { data } = await api.put('/users/me', payload);
 
-
-      setFormData({
-
-        fullName: data.user.fullName || '',
-
-        email: data.user.email || '',
-
-        currency: data.user.currency || 'USD',
-
-        phone: data.user.phone || '',
-
-        avatar: data.user.avatar || formData.avatar,
-
-      });
-
+      setFormData(prev => ({
+        ...prev,
+        fullName: data.user.fullName,
+        email: data.user.email,
+        phone: data.user.phone,
+        currency: data.user.currency,
+      }));
 
       toast.success('Perfil actualizado correctamente', { id: toastId });
-
     } catch (error) {
-
-      console.error('Error actualizando perfil:', error);
-
-      const errorMsg = error.response?.data?.msg ||
-
-                       error.response?.data?.errors?.[0]?.msg ||
-
-                       'Error al actualizar el perfil';
-
-      toast.error(errorMsg, { id: toastId });
-
+      console.error('Update error:', error);
+      const msg = error.response?.data?.msg || 'Error al actualizar el perfil';
+      toast.error(msg, { id: toastId });
     } finally {
-
       setLoading(false);
-
     }
-
   };
-
-
-  // Cambiar contraseña
 
   const handleChangePassword = async () => {
+    if (!validatePassword()) return;
 
-    if (!validatePasswordForm()) return;
-
-
-    setPasswordChanging(true);
-
-    const toastId = toast.loading('Cambiando contraseña...');
-
+    setLoading(true);
+    const toastId = toast.loading('Actualizando seguridad...');
 
     try {
-
       await api.post('/users/change-password', {
-
         currentPassword: passwordData.currentPassword,
-
         newPassword: passwordData.newPassword,
-
         confirmPassword: passwordData.confirmPassword,
-
       });
 
-
-      // Limpiar campos
-
-      setPasswordData({
-
-        currentPassword: '',
-
-        newPassword: '',
-
-        confirmPassword: '',
-
-      });
-
-
-      toast.success('Contraseña actualizada correctamente', { id: toastId });
-
+      setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+      toast.success('Contraseña modificada exitosamente', { id: toastId });
     } catch (error) {
-
-      console.error('Error cambiando contraseña:', error);
-
-      const errorMsg = error.response?.data?.msg ||
-
-                       error.response?.data?.errors?.[0]?.msg ||
-
-                       'Error al cambiar la contraseña';
-
-      toast.error(errorMsg, { id: toastId });
-
+      console.error('Password error:', error);
+      const msg = error.response?.data?.msg || 'No se pudo cambiar la contraseña. Verifica tus datos.';
+      toast.error(msg, { id: toastId });
     } finally {
-
-      setPasswordChanging(false);
-
+      setLoading(false);
     }
-
   };
 
-
-  // Input file reference
-
-  const fileInputRef = React.useRef(null);
-
+  // --- RENDER ---
 
   if (pageLoading) {
-
     return (
-
       <CardTransition>
-
-        <div className="flex h-96 items-center justify-center">
-
+        <div className="flex h-96 items-center justify-center" aria-live="polite">
           <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+            <p className="text-gray-500 font-medium">Cargando perfil seguro...</p>
+          </div>
+        </div>
+      </CardTransition>
+    );
+  }
 
-            <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+  return (
+    <>
+      <Toaster position="top-right" toastOptions={{ className: 'font-medium text-sm' }} />
+      
+      <div className="w-full min-h-screen bg-gray-50/50 py-10 px-4">
+        <div className="max-w-4xl mx-auto flex flex-col gap-6 pb-10">
+        
+          <header className="mb-2">
+            <h2 className="text-2xl font-bold text-slate-900">Configuración de Perfil</h2>
+            <p className="text-gray-500 text-sm">Gestiona tu información personal y preferencias de seguridad.</p>
+          </header>
 
-            <p className="text-gray-500 font-medium">Cargando datos del perfil...</p>
+          {/* AVATAR SECTION */}
+          <SectionCard className="flex flex-col items-center justify-center text-center py-10 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-blue-50/50 to-transparent pointer-events-none" />
+            
+            <button 
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="relative group cursor-pointer rounded-full focus:outline-none focus:ring-4 focus:ring-blue-500/30 transition-all"
+              aria-label="Cambiar foto de perfil"
+            >
+              <div className="w-32 h-32 rounded-full p-1 border-2 border-dashed border-blue-200 group-hover:border-blue-500 transition-colors bg-white">
+                <img
+                  src={previewUrl || formData.avatar || `https://ui-avatars.com/api/?name=${formData.fullName}&background=random`}
+                  alt=""
+                  className="w-full h-full rounded-full object-cover shadow-sm"
+                  aria-hidden="true"
+                />
+              </div>
+              <div className="absolute bottom-1 right-1 bg-blue-600 text-white p-2.5 rounded-full shadow-lg border-2 border-white transform transition-transform group-hover:scale-110 group-focus:scale-110">
+                <Camera className="w-4 h-4" />
+              </div>
+            </button>
 
+            <h3 className="mt-4 text-lg font-bold text-slate-800">
+              {formData.fullName || user?.username || 'Usuario'}
+            </h3>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              onChange={handleFileChange}
+              className="hidden"
+              disabled={avatarUploading}
+              aria-hidden="true"
+            />
+
+            {selectedFile ? (
+              <button
+                onClick={handleUploadAvatar}
+                disabled={avatarUploading}
+                className="mt-4 text-sm font-semibold px-5 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors flex items-center gap-2 shadow-md shadow-blue-200"
+              >
+                {avatarUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                {avatarUploading ? 'Subiendo...' : 'Confirmar Subida'}
+              </button>
+            ) : (
+              <p className="mt-2 text-xs text-gray-400">
+                Formatos permitidos: JPG, PNG, WebP (Máx. 2MB)
+              </p>
+            )}
+          </SectionCard>
+
+          {/* PERSONAL INFORMATION */}
+          <SectionCard title="Información Personal" icon={User}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormInput
+                id="fullName"
+                name="fullName"
+                label="Nombre Completo"
+                value={formData.fullName}
+                onChange={handleChange}
+                error={errors.fullName}
+                icon={User}
+                placeholder="Ej. Juan Pérez"
+                autoComplete="name"
+              />
+
+              <FormInput
+                id="email"
+                name="email"
+                type="email"
+                label="Correo Electrónico"
+                value={formData.email}
+                onChange={handleChange}
+                error={errors.email}
+                icon={Mail}
+                placeholder="juan@ejemplo.com"
+                autoComplete="email"
+              />
+
+              <FormInput
+                id="phone"
+                name="phone"
+                type="tel"
+                label="Teléfono"
+                value={formData.phone}
+                onChange={handleChange}
+                error={errors.phone}
+                icon={Phone}
+                placeholder="+54 9 11 1234 5678"
+                autoComplete="tel"
+              />
+
+              <div className="flex flex-col gap-2">
+                <label htmlFor="currency" className="text-xs font-bold text-gray-500 uppercase tracking-wide ml-1 flex items-center gap-1">
+                  Moneda Preferida
+                </label>
+                <div className="relative">
+                  <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                  <select
+                    id="currency"
+                    name="currency"
+                    value={formData.currency}
+                    onChange={handleChange}
+                    className="w-full rounded-xl border border-gray-200 bg-gray-50/30 text-gray-700 px-4 pl-11 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 appearance-none cursor-pointer font-medium"
+                  >
+                    <option value="USD">Dólar Estadounidense (USD)</option>
+                    <option value="EUR">Euro (EUR)</option>
+                    <option value="ARS">Peso Argentino (ARS)</option>
+                    <option value="MXN">Peso Mexicano (MXN)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* PASSWORD CHANGE */}
+          <SectionCard title="Seguridad de la Cuenta" icon={Lock}>
+            <div className="grid grid-cols-1 gap-6">
+              <div className="bg-orange-50 border border-orange-100 rounded-lg p-4 flex gap-3 text-orange-800 text-sm mb-2">
+                <Info className="w-5 h-5 flex-shrink-0" />
+                <p>
+                  Usa una contraseña fuerte con al menos 8 caracteres, incluyendo mayúsculas, números y símbolos.
+                </p>
+              </div>
+
+              <div className="relative">
+                <FormInput
+                  id="currentPassword"
+                  name="currentPassword"
+                  type={showPasswords.current ? "text" : "password"}
+                  label="Contraseña Actual"
+                  value={passwordData.currentPassword}
+                  onChange={handlePasswordInput}
+                  error={errors.currentPassword}
+                  icon={Lock}
+                  placeholder="••••••••"
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => togglePasswordVisibility('current')}
+                  className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 focus:outline-none focus:text-blue-500"
+                  aria-label={showPasswords.current ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPasswords.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="relative">
+                  <FormInput
+                    id="newPassword"
+                    name="newPassword"
+                    type={showPasswords.new ? "text" : "password"}
+                    label="Nueva Contraseña"
+                    value={passwordData.newPassword}
+                    onChange={handlePasswordInput}
+                    error={errors.newPassword}
+                    icon={Lock}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('new')}
+                    className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 focus:outline-none focus:text-blue-500"
+                  >
+                    {showPasswords.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+
+                <div className="relative">
+                  <FormInput
+                    id="confirmPassword"
+                    name="confirmPassword"
+                    type={showPasswords.confirm ? "text" : "password"}
+                    label="Confirmar Contraseña"
+                    value={passwordData.confirmPassword}
+                    onChange={handlePasswordInput}
+                    error={errors.confirmPassword}
+                    icon={Lock}
+                    placeholder="••••••••"
+                    autoComplete="new-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => togglePasswordVisibility('confirm')}
+                    className="absolute right-4 top-[38px] text-gray-400 hover:text-gray-600 focus:outline-none focus:text-blue-500"
+                  >
+                    {showPasswords.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="flex justify-end mt-2">
+                <button
+                  onClick={handleChangePassword}
+                  disabled={loading || !passwordData.currentPassword}
+                  className="px-6 py-2.5 rounded-xl bg-slate-800 text-white font-bold shadow-lg shadow-slate-200 hover:bg-slate-900 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <RefreshCw className="w-5 h-5" />
+                  )}
+                  Actualizar Contraseña
+                </button>
+              </div>
+            </div>
+          </SectionCard>
+
+          {/* ACCOUNT INFO (Read Only) */}
+          <SectionCard title="Datos de la Cuenta" icon={Info}>
+            <div className="space-y-3">
+              {[
+                { label: 'ID de Usuario', value: user?._id || 'N/A' },
+                { label: 'Usuario', value: user?.username || 'N/A' },
+                { label: 'Miembro desde', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A' }
+              ].map((item, index) => (
+                <div key={index} className="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-100">
+                  <span className="text-sm font-medium text-gray-500">{item.label}</span>
+                  <span className="text-sm font-bold text-gray-800 font-mono">{item.value}</span>
+                </div>
+              ))}
+            </div>
+          </SectionCard>
+
+          {/* GLOBAL ACTIONS */}
+          <div className="flex justify-end gap-4 pt-2 sticky bottom-4 z-10">
+            <div className="bg-white/80 backdrop-blur-md p-2 rounded-2xl shadow-xl border border-gray-200 flex gap-3">
+                <button
+                className="px-6 py-3 rounded-xl text-gray-600 font-bold hover:bg-gray-100 transition-colors disabled:opacity-50"
+                onClick={() => window.history.back()}
+                disabled={loading}
+                >
+                Cancelar
+                </button>
+                <button
+                onClick={handleSaveProfile}
+                disabled={loading}
+                className="px-8 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-200 hover:bg-blue-700 hover:shadow-xl hover:-translate-y-0.5 transition-all flex items-center gap-2 disabled:opacity-75 disabled:cursor-not-allowed"
+                >
+                {loading ? (
+                    <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    Guardando...
+                    </>
+                ) : (
+                    <>
+                    <Save className="w-5 h-5" />
+                    Guardar Cambios
+                    </>
+                )}
+                </button>
+            </div>
           </div>
 
         </div>
-
-      </CardTransition>
-
-    );
-
-  }
-
-
-  return (
-
-    <>
-
-      <Toaster
-
-        position="top-right"
-
-        toastOptions={{
-
-          style: {
-
-            borderRadius: '50px',
-
-            background: '#ffffff',
-
-            color: '#1e293b',
-
-            boxShadow: '0 8px 20px -4px rgba(0, 0, 0, 0.15)',
-
-            padding: '12px 24px',
-
-            fontWeight: '500',
-
-            border: '1px solid #f1f5f9'
-
-          },
-
-          success: { iconTheme: { primary: '#10B981', secondary: '#fff' } },
-
-          error: { iconTheme: { primary: '#EF4444', secondary: '#fff' } },
-
-          loading: { iconTheme: { primary: '#3B82F6', secondary: '#fff' } },
-
-        }}
-
-      />
-
-     
-
-      <div className="w-full min-h-screen bg-gray-50/50 py-10 px-4">
-
-        <div className="max-w-4xl mx-auto flex flex-col gap-6 pb-10">
-
-       
-
-        {/* --- TÍTULO DE LA SECCIÓN --- */}
-
-        <div>
-
-           <h2 className="text-2xl font-bold text-[#111318]">Configuración de Perfil</h2>
-
-           <p className="text-gray-500 text-sm">Gestiona tu información personal y preferencias de seguridad.</p>
-
-        </div>
-
-
-        {/* --- TARJETA 1: FOTO DE PERFIL --- */}
-
-        <div className={`${cardClassName} flex flex-col items-center justify-center text-center py-10 relative overflow-hidden`}>
-
-            {/* Decoración de fondo */}
-
-            <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-b from-blue-50/50 to-transparent"></div>
-
-           
-
-            <div className="relative group cursor-pointer" onClick={() => fileInputRef.current?.click()}>
-
-                <div className="w-32 h-32 rounded-full p-1 border-2 border-dashed border-blue-200 group-hover:border-blue-500 transition-colors">
-
-                    <img
-
-                        src={previewUrl || formData.avatar || `https://i.pravatar.cc/150?u=${user?.email}`}
-
-                        alt="Profile"
-
-                        className="w-full h-full rounded-full object-cover shadow-sm"
-
-                    />
-
-                </div>
-
-                {/* Botón flotante de cámara */}
-
-                <div className="absolute bottom-1 right-1 bg-blue-600 text-white p-2 rounded-full shadow-lg border-2 border-white transform transition-transform group-hover:scale-110">
-
-                    <span className="material-symbols-outlined text-[18px] block">photo_camera</span>
-
-                </div>
-
-            </div>
-
-
-            <h3 className="mt-4 text-lg font-bold text-slate-800">{formData.fullName || user?.username || 'Usuario'}</h3>
-
-           
-
-            {/* Input file oculto */}
-
-            <input
-
-                ref={fileInputRef}
-
-                type="file"
-
-                accept="image/*"
-
-                onChange={handleFileChange}
-
-                className="hidden"
-
-                disabled={avatarUploading}
-
-            />
-
-
-            {selectedFile && (
-
-              <button
-
-                  onClick={handleUploadAvatar}
-
-                  disabled={avatarUploading}
-
-                  className="mt-3 text-sm font-semibold px-4 py-2 rounded-full bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
-
-              >
-
-                {avatarUploading ? (
-
-                  <>
-
-                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-
-                    Subiendo...
-
-                  </>
-
-                ) : (
-
-                  <>
-
-                    <span className="material-symbols-outlined text-[16px]">upload</span>
-
-                    Subir Imagen
-
-                  </>
-
-                )}
-
-              </button>
-
-            )}
-
-
-            {!selectedFile && (
-
-              <button
-
-                  onClick={() => fileInputRef.current?.click()}
-
-                  className="mt-2 text-sm text-blue-600 font-semibold hover:bg-blue-50 px-4 py-1.5 rounded-full transition-colors"
-
-              >
-
-                Cambiar Foto
-
-              </button>
-
-            )}
-
-        </div>
-
-
-        {/* --- TARJETA 2: INFORMACIÓN PERSONAL --- */}
-
-        <div className={cardClassName}>
-
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
-
-                <span className="material-symbols-outlined text-blue-600">person</span>
-
-                <h3 className="font-bold text-slate-800 text-lg">Información Personal</h3>
-
-            </div>
-
-           
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-                {/* Nombre Completo */}
-
-                <div className={inputGroupClass}>
-
-                    <label className={labelClass}>Nombre Completo</label>
-
-                    <input
-
-                        type="text"
-
-                        name="fullName"
-
-                        value={formData.fullName}
-
-                        onChange={handleChange}
-
-                        placeholder="Tu nombre completo"
-
-                        className={inputClass}
-
-                    />
-
-                </div>
-
-
-                {/* Email */}
-
-                <div className={inputGroupClass}>
-
-                    <label className={labelClass}>Correo Electrónico</label>
-
-                    <input
-
-                        type="email"
-
-                        name="email"
-
-                        value={formData.email}
-
-                        onChange={handleChange}
-
-                        placeholder="tu@email.com"
-
-                        className={inputClass}
-
-                    />
-
-                </div>
-
-
-                {/* Teléfono */}
-
-                <div className={inputGroupClass}>
-
-                    <label className={labelClass}>Teléfono</label>
-
-                    <input
-
-                        type="tel"
-
-                        name="phone"
-
-                        value={formData.phone}
-
-                        onChange={handleChange}
-
-                        placeholder="+54 9 11 1234 5678"
-
-                        className={inputClass}
-
-                    />
-
-                </div>
-
-
-                {/* Moneda */}
-
-                <div className={inputGroupClass}>
-
-                    <label className={labelClass}>Moneda Preferida</label>
-
-                    <div className="relative">
-
-                        <select
-
-                            name="currency"
-
-                            value={formData.currency}
-
-                            onChange={handleChange}
-
-                            className={`${inputClass} appearance-none cursor-pointer`}
-
-                        >
-
-                            <option value="USD">Dólar Estadounidense (USD)</option>
-
-                            <option value="EUR">Euro (EUR)</option>
-
-                            <option value="ARS">Peso Argentino (ARS)</option>
-
-                            <option value="MXN">Peso Mexicano (MXN)</option>
-
-                        </select>
-
-                        <span className="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none text-sm">expand_more</span>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        {/* --- TARJETA 3: CAMBIAR CONTRASEÑA --- */}
-
-        <div className={cardClassName}>
-
-            <div className="flex items-center gap-2 mb-6 border-b border-gray-100 pb-4">
-
-                <span className="material-symbols-outlined text-blue-600">lock</span>
-
-                <h3 className="font-bold text-slate-800 text-lg">Cambiar Contraseña</h3>
-
-            </div>
-
-
-            <div className="grid grid-cols-1 gap-6">
-
-                {/* Contraseña Actual */}
-
-                <div className={inputGroupClass}>
-
-                    <label className={labelClass}>Contraseña Actual</label>
-
-                    <div className="relative">
-
-                        <input
-
-                            type={showCurrentPassword ? "text" : "password"}
-
-                            name="currentPassword"
-
-                            value={passwordData.currentPassword}
-
-                            onChange={handlePasswordChange}
-
-                            placeholder="Ingresa tu contraseña actual"
-
-                            className={inputClass}
-
-                        />
-
-                        <button
-
-                            type="button"
-
-                            onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-
-                        >
-
-                            <span className="material-symbols-outlined text-xl select-none">
-
-                                {showCurrentPassword ? 'visibility_off' : 'visibility'}
-
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                {/* Nueva Contraseña */}
-
-                <div className={inputGroupClass}>
-
-                    <label className={labelClass}>Nueva Contraseña</label>
-
-                    <div className="relative">
-
-                        <input
-
-                            type={showNewPassword ? "text" : "password"}
-
-                            name="newPassword"
-
-                            value={passwordData.newPassword}
-
-                            onChange={handlePasswordChange}
-
-                            placeholder="Crear nueva contraseña"
-
-                            className={inputClass}
-
-                        />
-
-                        <button
-
-                            type="button"
-
-                            onClick={() => setShowNewPassword(!showNewPassword)}
-
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-
-                        >
-
-                            <span className="material-symbols-outlined text-xl select-none">
-
-                                {showNewPassword ? 'visibility_off' : 'visibility'}
-
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                {/* Confirmar Nueva Contraseña */}
-
-                <div className={inputGroupClass}>
-
-                    <label className={labelClass}>Confirmar Nueva Contraseña</label>
-
-                    <div className="relative">
-
-                        <input
-
-                            type={showConfirmPassword ? "text" : "password"}
-
-                            name="confirmPassword"
-
-                            value={passwordData.confirmPassword}
-
-                            onChange={handlePasswordChange}
-
-                            placeholder="Repetir nueva contraseña"
-
-                            className={inputClass}
-
-                        />
-
-                        <button
-
-                            type="button"
-
-                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-
-                            className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none"
-
-                        >
-
-                            <span className="material-symbols-outlined text-xl select-none">
-
-                                {showConfirmPassword ? 'visibility_off' : 'visibility'}
-
-                            </span>
-
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <button
-
-                    onClick={handleChangePassword}
-
-                    disabled={passwordChanging || loading || avatarUploading}
-
-                    className={`
-
-                        px-6 py-3 rounded-xl bg-orange-600 text-white font-bold shadow-lg shadow-orange-200
-
-                        hover:bg-orange-700 hover:shadow-xl hover:-translate-y-0.5 transition-all
-
-                        flex items-center justify-center gap-2
-
-                        ${(passwordChanging || loading || avatarUploading) ? 'opacity-75 cursor-not-allowed' : ''}
-
-                    `}
-
-                >
-
-                    {passwordChanging ? (
-
-                        <>
-
-                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-
-                            Cambiando...
-
-                        </>
-
-                    ) : (
-
-                        <>
-
-                            <span className="material-symbols-outlined text-[20px]">check_circle</span>
-
-                            Cambiar Contraseña
-
-                        </>
-
-                    )}
-
-                </button>
-
-            </div>
-
-        </div>
-
-
-        {/* --- TARJETA 4: INFORMACIÓN ADICIONAL --- */}
-
-        <div className={cardClassName}>
-
-            <div className="flex items-center gap-2 mb-4 border-b border-gray-100 pb-4">
-
-                <span className="material-symbols-outlined text-blue-600">info</span>
-
-                <h3 className="font-bold text-slate-800 text-lg">Información de Cuenta</h3>
-
-            </div>
-
-
-            <div className="space-y-3">
-
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-
-                    <span className="text-sm font-medium text-gray-600">Usuario:</span>
-
-                    <span className="text-sm font-bold text-gray-800">{user?.username || 'N/A'}</span>
-
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-
-                    <span className="text-sm font-medium text-gray-600">Miembro desde:</span>
-
-                    <span className="text-sm font-bold text-gray-800">{new Date(user?.createdAt).toLocaleDateString('es-AR')}</span>
-
-                </div>
-
-                <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
-
-                    <span className="text-sm font-medium text-gray-600">Última actualización:</span>
-
-                    <span className="text-sm font-bold text-gray-800">{new Date(user?.updatedAt).toLocaleDateString('es-AR')}</span>
-
-                </div>
-
-            </div>
-
-        </div>
-
-
-        {/* --- BOTONES DE ACCIÓN --- */}
-
-        <div className="flex justify-end gap-4 pt-2">
-
-            <button
-
-                className="px-6 py-3 rounded-xl text-gray-500 font-bold hover:bg-gray-100 transition-colors disabled:opacity-50"
-
-                onClick={() => window.history.back()}
-
-                disabled={loading || avatarUploading || passwordChanging}
-
-            >
-
-                Cancelar
-
-            </button>
-
-            <button
-
-                onClick={handleSave}
-
-                disabled={loading || avatarUploading || passwordChanging}
-
-                className={`
-
-                    px-8 py-3 rounded-xl bg-blue-600 text-white font-bold shadow-lg shadow-blue-200
-
-                    hover:bg-blue-700 hover:shadow-xl hover:-translate-y-0.5 transition-all
-
-                    flex items-center gap-2
-
-                    ${(loading || avatarUploading || passwordChanging) ? 'opacity-75 cursor-not-allowed' : ''}
-
-                `}
-
-            >
-
-                {loading ? (
-
-                    <>
-
-                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-
-                        Guardando...
-
-                    </>
-
-                ) : (
-
-                    <>
-
-                        <span className="material-symbols-outlined text-[20px]">save</span>
-
-                        Guardar Cambios
-
-                    </>
-
-                )}
-
-            </button>
-
-        </div>
-
-
       </div>
-
-      </div>
-
     </>
-
   );
-
 };
 
-
-export default ProfileSettings; 
+export default ProfileSettings;

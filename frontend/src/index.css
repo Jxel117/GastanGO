@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+/* ESTA LÍNEA ES CRUCIAL PARA TU BOTÓN DE THEME:
+   Le dice a Tailwind v4: "El modo oscuro se activa cuando 
+   el elemento HTML tiene la clase .dark" 
+*/
+@variant dark (&:where(.dark, .dark *));
+
+/* Aquí puedes poner tus estilos globales si quieres
+   pero Tailwind ya reinicia los estilos por ti.
+*/
