@@ -1,143 +1,145 @@
-
-const { User, Token } = require('../models');
+const { User } = require('../models');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
+const { sendWelcomeEmail } = require('../services/email.service'); 
 
-// --- IMPLEMENTACIÓN DETALLADA ---
-// Este archivo es el controlador de autenticación. Contiene la lógica principal para:
-// 1. Registrar nuevos usuarios, validando que no existan previamente y guardándolos en la BD.
-// 2. Iniciar sesión, verificando credenciales y generando un JWT.
-// 3. Obtener el perfil del usuario autenticado.
-// 4. Hacer logout revocando el token en la base de datos.
+// --- 1. REGISTRO (HÍBRIDO: MANUAL O GOOGLE) ---
+// EN: controllers/auth.controller.js
 
-// Controlador para registrar un nuevo usuario
 exports.register = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
+  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
 
   const { username, email, password } = req.body;
 
+  // Validación Gmail
+  if (!email.toLowerCase().endsWith('@gmail.com')) {
+    return res.status(400).json({ msg: 'Solo se permiten cuentas @gmail.com' });
+  }
+
   try {
-    // Verificar si el usuario ya existe
     let user = await User.findOne({ where: { email } });
-    if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
-    }
+    if (user) return res.status(400).json({ msg: 'El usuario ya existe' });
 
-    // Crear el nuevo usuario (el hash de la contraseña se hace en el hook del modelo)
-    user = await User.create({ username, email, password });
+    // --- CAMBIO IMPORTANTE: ---
+    // Creamos el usuario YA verificado para que pueda entrar directo.
+    // (Más adelante podrás activar la lógica del código si quieres)
+    user = await User.create({ 
+      username, 
+      email, 
+      password,
+      isVerified: true, // <--- ESTO SOLUCIONA EL BLOQUEO DE LOGIN
+      verificationCode: null 
+    });
 
-    res.status(201).json({ msg: 'User registered successfully' });
+    // --- GENERAR TOKEN INMEDIATAMENTE ---
+    // Esto es lo que le faltaba a tu AuthContext para funcionar
+    const payload = { user: { id: user.id } };
+    
+    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
+      if (err) throw err;
+      // Devolvemos el token y el usuario
+      res.status(201).json({ token, user });
+    });
+
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send('Error del servidor');
   }
 };
 
-// Controlador para iniciar sesión
-exports.login = async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
+// --- 2. LOGIN CON GOOGLE (SOLO VERIFICACIÓN) ---
+exports.googleLogin = async (req, res) => {
+  const { email, name } = req.body;
+
+  // Validación Gmail
+  if (!email.toLowerCase().endsWith('@gmail.com')) {
+    return res.status(400).json({ msg: 'Acceso restringido a cuentas @gmail.com' });
   }
 
+  try {
+    // Buscamos si el usuario ya existe en la BD
+    let user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      // CASO A: NO EXISTE -> Avisamos al Frontend para que lo mande a la pantalla de Registro
+      return res.status(200).json({ 
+        isNewUser: true, 
+        email: email, // Devolvemos el email para que se autollene en el formulario
+        name: name 
+      });
+    }
+
+    // CASO B: YA EXISTE -> Generamos Token y entra directo
+    const payload = { user: { id: user.id } };
+    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
+      if (err) throw err;
+      res.json({ token, user, isNewUser: false });
+    });
+
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Error en el servidor');
+  }
+};
+
+// --- 3. VERIFICAR CÓDIGO (SOLO FLUJO MANUAL) ---
+exports.verifyEmail = async (req, res) => {
+  const { email, code } = req.body;
+  
+  try {
+    const user = await User.findOne({ where: { email } });
+    if (!user) return res.status(400).json({ msg: 'Usuario no encontrado' });
+
+    if (user.verificationCode !== code) {
+      return res.status(400).json({ msg: 'Código incorrecto' });
+    }
+
+    // Activar usuario y limpiar código
+    user.isVerified = true;
+    user.verificationCode = null; 
+    await user.save();
+
+    res.json({ msg: 'Cuenta verificada exitosamente' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error del servidor');
+  }
+};
+
+// --- 4. LOGIN MANUAL (REQUIERE ESTAR VERIFICADO) ---
+exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    // Buscar al usuario por email
     const user = await User.findOne({ where: { email } });
-    if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+    if (!user) return res.status(400).json({ msg: 'Credenciales inválidas' });
+
+    // VERIFICAR SI LA CUENTA ESTÁ ACTIVADA
+    if (!user.isVerified) {
+      return res.status(403).json({ msg: 'Tu cuenta no ha sido verificada. Revisa tu correo.' });
     }
 
-    // Comparar la contraseña (usando el método del modelo)
     const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
-    }
+    if (!isMatch) return res.status(400).json({ msg: 'Credenciales inválidas' });
 
-    // Crear y firmar el JWT
-    const payload = {
-      user: {
-        id: user.id,
-      },
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES_IN },
-      async (err, token) => {
-        if (err) throw err;
-
-        try {
-          // Calcular fecha de expiración del token
-          const decoded = jwt.decode(token);
-          const expiresAt = new Date(decoded.exp * 1000);
-
-          // Guardar el token en la base de datos
-          await Token.create({
-            userId: user.id,
-            token: token,
-            isActive: true,
-            expiresAt: expiresAt,
-          });
-
-          res.json({ token });
-        } catch (dbErr) {
-          console.error('Error saving token to database:', dbErr.message);
-          res.status(500).send('Server error');
-        }
-      }
-    );
+    const payload = { user: { id: user.id } };
+    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
+      if (err) throw err;
+      res.json({ token });
+    });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    res.status(500).send('Error del servidor');
   }
 };
 
-// Controlador para obtener el perfil del usuario
+// --- 5. OBTENER PERFIL ---
 exports.getProfile = async (req, res) => {
-  try {
-    // El middleware `verifyToken` ya ha buscado al usuario y lo ha añadido a `req.user`
-    const user = await User.findByPk(req.user.id, {
-      attributes: { exclude: ['password'] }, // Excluir la contraseña del resultado
-    });
-    res.json(user);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-// Controlador para hacer logout (revocar token)
-exports.logout = async (req, res) => {
-  try {
-    // Obtener el token del header Authorization
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      return res.status(400).json({ msg: 'No token provided' });
+    try {
+      const user = await User.findByPk(req.user.id, { attributes: { exclude: ['password'] } });
+      res.json(user);
+    } catch (err) {
+      res.status(500).send('Server error');
     }
-
-    const token = authHeader.replace('Bearer ', '');
-
-    // Buscar el token en la BD
-    const tokenRecord = await Token.findOne({ where: { token } });
-    if (!tokenRecord) {
-      return res.status(404).json({ msg: 'Token not found' });
-    }
-
-    // Marcar el token como inactivo (revocado)
-    await tokenRecord.update({
-      isActive: false,
-      revokedAt: new Date(),
-    });
-
-    res.json({ msg: 'Logout successful' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
 };

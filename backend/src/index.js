@@ -17,7 +17,7 @@ const swaggerSpec = require('./config/swagger');
 
 // 1. Inicialización de la App Express
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3001;
 
 // 2. Middlewares Esenciales
 // Middlewares son funciones que se ejecutan en el ciclo de vida de una petición (request/response).

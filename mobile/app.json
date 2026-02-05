@@ -1,10 +1,13 @@
 {
   "expo": {
-    "name": "gastango-mobile",
+    "name": "GastanGO",
     "slug": "gastango-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
+    
+    "scheme": "com.jxel117.gastangomobile",
+    
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -21,10 +24,20 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.jxel117.gastangomobile"
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/logo.png"
+    },
+    "plugins": [
+      "expo-web-browser",
+      "expo-asset"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b6265c1a-f55a-481b-a36a-d5339410e433"
+      }
     }
   }
 }
