@@ -1,0 +1,191 @@
+---
+title: "GastanGO"
+subtitle: "Sistema de Gestión de Gastos Personales (PERN + Mobile)"
+author: "Equipo de Desarrollo"
+date: last-modified
+lang: es
+format:
+  html:
+    theme: flatly
+    toc: true
+    toc-depth: 3
+    toc-title: "Índice de Contenidos"
+    number-sections: true
+    code-copy: true
+    smooth-scroll: true
+    css: styles.css
+  pdf:
+    toc: true
+    number-sections: true
+    documentclass: report
+---
+
+# Resumen Ejecutivo {.unnumbered}
+
+::: {.callout-note appearance="simple"}
+## Sobre el Proyecto
+**GastanGO** es un ecosistema digital diseñado para la salud financiera. Combina la robustez de un backend empresarial con la flexibilidad de una experiencia móvil nativa.
+:::
+
+GastanGO es un sistema multiplataforma orientado a la gestión y control de gastos, desarrollado bajo el stack **PERN (PostgreSQL, Express, React y Node.js)** e integrado con una **aplicación móvil cross-platform** construida con **Expo (React Native)**. 
+
+El proyecto busca ofrecer una solución accesible, escalable y segura para el registro, visualización y análisis de gastos personales.
+
+---
+
+# Introducción
+
+En la actualidad, la gestión eficiente de los recursos económicos personales se ha convertido en una necesidad fundamental. GastanGO surge como una propuesta tecnológica que integra tecnologías web modernas y desarrollo móvil multiplataforma.
+
+Este documento presenta la **documentación técnica, arquitectónica y el manual de usuario**, describiendo su funcionamiento interno y guías de uso.
+
+# Objetivos
+
+::: {.panel-tabset}
+
+## 🎯 Objetivo General
+Desarrollar un sistema multiplataforma para la gestión de gastos personales utilizando el stack **PERN** y una aplicación móvil basada en **Expo**.
+
+## 🚀 Objetivos Específicos
+* **Arquitectura:** Implementar un modelo cliente-servidor escalable.
+* **Persistencia:** Integrar una base de datos relacional (PostgreSQL).
+* **Movilidad:** Desarrollar una aplicación móvil cross-platform (Android/iOS).
+* **UX/UI:** Garantizar una experiencia de usuario intuitiva y segura.
+:::
+
+# Alcance del Proyecto
+
+| Incluye ✅ | No Incluye ❌ |
+|:---:|:---:|
+| Registro y autenticación (JWT) | Integración bancaria en tiempo real |
+| Gestión CRUD de gastos | Pagos directos desde la app |
+| Visualización Web y Móvil | Inteligencia Artificial (Fase 2) |
+| Sincronización vía API REST | |
+
+# Arquitectura del Sistema
+
+## Diagramas C4 (Structurizr)
+
+Para entender la arquitectura, utilizamos el modelo C4. Los siguientes diagramas están en formato vectorial (SVG) para una visualización de alta calidad sin pérdida de resolución.
+
+::: {.callout-tip collapse="true"}
+## 📌 Guía: Cómo interpretar los diagramas Structurizr
+
+**Niveles de Zoom:**
+1.  **C1 - Context:** Visión general del negocio y actores externos.
+2.  **C2 - Container:** Tecnología (Web, API, Mobile, DB).
+3.  **C3 - Component:** Estructura interna (Controladores, Servicios).
+3.  **C4 - Despliegue - Codigo:** Estructura a nivel de codigo y despliegue.
+:::
+
+### Galería de Arquitectura
+
+::: {layout-ncol=2}
+![Vista de Contexto](docs/architecure/MODEL-C4-v1.3Context.svg){.lightbox group="arquitectura" description="Vista C1: Contexto del Sistema"}
+
+![Vista de Contenedores](docs/architecure/MODEL-C4-v1.3Containers.svg){.lightbox group="arquitectura" description="Vista C2: Contenedores y Tecnologías"}
+
+![Vista de Componentes (Backend)](docs/architecure/MODEL-C4-v1.3BackendComponents.svg){.lightbox group="arquitectura" description="Vista C3: Componentes Internos Backend"}
+
+![Vista de Componentes (Frontend)](docs/architecure/MODEL-C4-v1.3WebComponents.svg){.lightbox group="arquitectura" description="Vista C3: Componentes Internos Fronted"}
+
+![Vista de Despliegue](docs/architecure/MODEL-C4-v1.3Despliegue.svg){.lightbox group="arquitectura" description="Infraestructura y Docker"}
+:::
+
+<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
+  <i class="bi bi-folder-fill"></i> Explorar carpeta de diagramas
+</a>
+<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
+  <i class="bi bi-folder-fill"></i> Explorar carpeta de diagramas (keys)
+</a>
+<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
+  <i class="bi bi-folder-fill"></i> Explorar demostracion movil
+</a>
+
+## Stack Tecnológico
+
+El sistema sigue una arquitectura **cliente-servidor** desacoplada:
+
+* **Frontend Web:** React (Vite + Tailwind)
+* **Backend:** Node.js + Express (API REST)
+* **Base de Datos:** PostgreSQL 16
+* **Mobile App:** Expo (React Native)
+
+# Diseño Móvil (Cross-Platform)
+
+La aplicación móvil fue desarrollada siguiendo el paradigma **cross-platform**, permitiendo su ejecución tanto en Android como en iOS a partir de una única base de código.
+
+**Ventajas Clave:**
+1.  Reducción de costos de desarrollo.
+2.  Mantenimiento unificado.
+3.  Consistencia en la experiencia de usuario.
+
+# Seguridad
+
+El sistema implementa mecanismos de defensa en profundidad:
+
+* 🔐 **Autenticación:** JWT (JSON Web Tokens).
+* 🛡️ **Validación:** Middleware de validación en backend (Zod/Express-validator).
+* 🚦 **Rutas Protegidas:** Guardias de navegación en Frontend y Mobile.
+
+---
+# Video Demostrativo
+
+A continuación, se presenta una demostración funcional del sistema en operación:
+
+::: {.content-visible when-format="html"}
+{{< video https://www.youtube.com/watch?v=riEiAfkj_CM >}}
+:::
+
+::: {.content-visible when-format="pdf"}
+El video demostrativo del sistema está disponible en el siguiente enlace:
+
+🔗 https://www.youtube.com/watch?v=riEiAfkj_CM
+:::
+
+---
+
+# Manual de Usuario
+
+## Instalación
+
+### Requisitos
+* Dispositivo Android (6.0+) o iOS (13+).
+* Conexión a Internet activa.
+
+### Descarga de la Aplicación
+Puedes acceder a la última compilación de desarrollo a través de Expo:
+
+::: {.callout-important appearance="minimal"}
+🔗 **[Descargar GastanGO Mobile (Expo Build)](https://expo.dev/accounts/jxel117/projects/gastango-mobile/builds/7f8a8928-4c10-41a9-baf2-91a5bea4c258)**
+:::
+
+## Uso Básico
+
+1.  **Registro:** Crea una cuenta con tu correo electrónico.
+2.  **Dashboard:** Visualiza tu saldo actual.
+3.  **Nueva Transacción:** Pulsa el botón `+` para agregar un gasto o ingreso.
+4.  **Historial:** Revisa tus movimientos pasados en la pestaña de reportes.
+
+# Repositorio y Código Fuente
+
+El desarrollo es de código abierto y está disponible para revisión.
+
+::: {.sourceCode}
+https://github.com/Jxel117/GastanGO
+:::
+
+[<i class="bi bi-github"></i> Ver Repositorio en GitHub](https://github.com/Jxel117/GastanGO){.btn .btn-outline-dark}
+
+# Conclusiones
+
+GastanGO demuestra la viabilidad de integrar tecnologías web modernas con desarrollo móvil.
+
+Desarrollado por estudiantes de la Universidad Nacional de Loja de la carrera Ingenieria en Ciencias de la Computacion
+::: {.sourceCode}
+https://github.com/Jxel117/
+:::
+::: {.sourceCode}
+https://github.com/FreddyAlx1998Mora12
+:::
+
