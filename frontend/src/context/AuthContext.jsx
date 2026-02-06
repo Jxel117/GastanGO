@@ -41,9 +41,17 @@ export const AuthProvider = ({ children }) => {
     });
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    setUser(null);
+  const logout = async () => {
+    try {
+      // Llamar al endpoint de logout en el backend
+      await api.post('/auth/logout');
+    } catch (error) {
+      console.error('Error durante logout:', error);
+    } finally {
+      // Limpiar el token y usuario sin importar si el logout fue exitoso
+      localStorage.removeItem('token');
+      setUser(null);
+    }
   };
 
   return (

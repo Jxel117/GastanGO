@@ -1,42 +1,20 @@
-
 const express = require('express');
-const { getProfile } = require('../controllers/auth.controller');
-const { verifyToken } = require('../middlewares/auth.middleware');
-
 const router = express.Router();
+const userController = require('../controllers/user.controller'); // Importamos el controlador nuevo
 
-/**
- * @swagger
- * tags:
- *   name: Users
- *   description: User management
- */
+// CORRECCIÓN: Apuntamos a la carpeta 'middlewares' (plural) y al archivo 'auth.middleware'
+const auth = require('../middlewares/auth.middleware'); 
 
-/**
- * @swagger
- * /api/users/me:
- *   get:
- *     summary: Get the profile of the currently authenticated user
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: User profile data
- *         content:
- *           application/json:
- *             schema:
- *               type: object
- *               properties:
- *                 id:
- *                   type: integer
- *                 username:
- *                   type: string
- *                 email:
- *                   type: string
- *       401:
- *         description: Unauthorized (token is missing or invalid)
- */
-router.get('/me', verifyToken, getProfile);
+// --- RUTAS ---
+
+// Obtener perfil del usuario (GET /api/users/profile)
+// Usamos 'userController.getUserProfile' que acabamos de crear
+router.get('/profile', auth, userController.getUserProfile);
+
+// Si tenías una ruta raíz también (GET /api/users/)
+router.get('/', auth, userController.getUserProfile);
+
+// Actualizar usuario
+router.put('/', auth, userController.updateUser);
 
 module.exports = router;
