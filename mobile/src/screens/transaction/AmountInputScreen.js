@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, StatusBar } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Platform, StatusBar, Modal } from 'react-native';
 import api from '../../services/api';
-import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
+import { MaterialIcons } from '@expo/vector-icons';
 
 export default function AmountInputScreen({ route, navigation }) {
   const { type, category } = route.params;
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
+  
+  // ESTADO PARA EL MENSAJE DE ÉXITO
+  const [showSuccess, setShowSuccess] = useState(false);
 
-  // Función para manejar las teclas del teclado personalizado
   const handlePress = (val) => {
     if (val === 'back') {
       setAmount(prev => prev.slice(0, -1));
       return;
     }
     if (val === '.' && amount.includes('.')) return;
-    if (amount.length > 8) return; // Límite de caracteres
+    if (amount.length > 8) return; 
     setAmount(prev => prev + val);
   };
 
@@ -31,15 +33,25 @@ export default function AmountInputScreen({ route, navigation }) {
         categoryIcon: category.icon,
         date: new Date()
       });
-      navigation.popToTop(); 
-    } catch (error) {
-      Alert.alert('Error', 'No se pudo guardar');
-    } finally {
+
+      // 1. Ocultamos el spinner
       setLoading(false);
+      
+      // 2. MOSTRAMOS EL ÉXITO (La app "habla")
+      setShowSuccess(true);
+
+      // 3. Esperamos 1.5 segundos para que el usuario lo lea y se sienta bien
+      setTimeout(() => {
+          setShowSuccess(false);
+          navigation.popToTop(); // Volver al inicio
+      }, 1500);
+
+    } catch (error) {
+      setLoading(false);
+      Alert.alert('Error', 'No se pudo guardar, revisa tu conexión.');
     }
   };
 
-  // Componente de Botón del Teclado
   const KeyButton = ({ value, label, icon }) => (
     <TouchableOpacity style={styles.keyBtn} onPress={() => handlePress(value)}>
       {icon ? <MaterialIcons name={icon} size={28} color="#374151" /> : <Text style={styles.keyText}>{label || value}</Text>}
@@ -48,6 +60,23 @@ export default function AmountInputScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* --- MODAL DE ÉXITO (EL MENSAJE RÁPIDO) --- */}
+      <Modal visible={showSuccess} transparent={true} animationType="fade">
+        <View style={styles.successOverlay}>
+            <View style={styles.successCard}>
+                <MaterialIcons name="check-circle" size={80} color="#10B981" />
+                <Text style={styles.successTitle}>¡Listo!</Text>
+                <Text style={styles.successText}>
+                    Se registró tu {type === 'income' ? 'Ingreso' : 'Gasto'} de
+                </Text>
+                <Text style={[styles.successAmount, { color: type === 'expense' ? '#EF4444' : '#10B981' }]}>
+                    ${parseFloat(amount || '0').toFixed(2)}
+                </Text>
+                <Text style={styles.successCategory}>en {category.name}</Text>
+            </View>
+        </View>
+      </Modal>
+
       {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
@@ -68,7 +97,7 @@ export default function AmountInputScreen({ route, navigation }) {
          </View>
       </View>
 
-      {/* TECLADO NUMÉRICO PERSONALIZADO */}
+      {/* TECLADO */}
       <View style={styles.keyboard}>
         <View style={styles.row}>
             <KeyButton value="1" />
@@ -91,8 +120,7 @@ export default function AmountInputScreen({ route, navigation }) {
             <KeyButton value="back" icon="backspace" />
         </View>
 
-        {/* BOTÓN CONFIRMAR */}
-        <TouchableOpacity style={styles.confirmBtn} onPress={handleSave} disabled={loading}>
+        <TouchableOpacity style={[styles.confirmBtn, { backgroundColor: type === 'expense' ? '#EF4444' : '#10B981' }]} onPress={handleSave} disabled={loading}>
             {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.confirmText}>Confirmar</Text>}
         </TouchableOpacity>
       </View>
@@ -121,6 +149,15 @@ const styles = StyleSheet.create({
   keyBtn: { width: '30%', height: 60, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F1F5F9', borderRadius: 15 },
   keyText: { fontSize: 24, fontWeight: 'bold', color: '#334155' },
 
-  confirmBtn: { backgroundColor: '#2563EB', height: 60, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginTop: 10 },
-  confirmText: { color: '#fff', fontSize: 20, fontWeight: 'bold' }
+  // Botón dinámico (cambia de color según ingreso/gasto)
+  confirmBtn: { height: 60, borderRadius: 20, justifyContent: 'center', alignItems: 'center', marginTop: 10, elevation: 3 },
+  confirmText: { color: '#fff', fontSize: 20, fontWeight: 'bold' },
+
+  // --- ESTILOS DEL MODAL DE ÉXITO ---
+  successOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
+  successCard: { width: '80%', backgroundColor: '#fff', padding: 30, borderRadius: 25, alignItems: 'center', elevation: 10 },
+  successTitle: { fontSize: 28, fontWeight: 'bold', color: '#1E293B', marginTop: 10, marginBottom: 5 },
+  successText: { fontSize: 16, color: '#64748B', textAlign: 'center' },
+  successAmount: { fontSize: 32, fontWeight: 'bold', marginVertical: 10 },
+  successCategory: { fontSize: 16, fontWeight: 'bold', color: '#374151', backgroundColor: '#F1F5F9', paddingHorizontal: 15, paddingVertical: 5, borderRadius: 10 }
 });

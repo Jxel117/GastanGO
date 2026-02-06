@@ -8,6 +8,8 @@ import { MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { ThemeContext } from '../../context/ThemeContext';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
+// 👇 ESTA LÍNEA ES LA CLAVE PARA ARREGLAR EL ERROR AMARILLO:
+import * as FileSystem from 'expo-file-system/legacy';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -35,7 +37,7 @@ export default function ReportsScreen() {
       const txs = res.data.filter(t => t.type === 'expense');
       setTransactions(txs);
 
-      // 1. GRÁFICO CIRCULAR (Categorías)
+      // LÓGICA DE DATOS
       const categories = {};
       txs.forEach(t => {
         if (!categories[t.category]) categories[t.category] = 0;
@@ -52,7 +54,6 @@ export default function ReportsScreen() {
       }));
       setPieData(pData);
 
-      // 2. INSIGHTS (Texto inteligente)
       let maxCatName = '';
       let maxCatVal = 0;
       let totalAmount = 0;
@@ -65,7 +66,6 @@ export default function ReportsScreen() {
         }
       });
 
-      // 3. GRÁFICO DE BARRAS (Últimos 7 días)
       const last7Days = {};
       const labels = [];
       const dataPoints = [];
@@ -73,9 +73,8 @@ export default function ReportsScreen() {
       for (let i = 6; i >= 0; i--) {
         const d = new Date();
         d.setDate(d.getDate() - i);
-        const dateKey = d.toISOString().split('T')[0]; // YYYY-MM-DD
+        const dateKey = d.toISOString().split('T')[0];
         const dayName = d.toLocaleDateString('es-ES', { weekday: 'short' });
-        
         last7Days[dateKey] = 0;
         labels.push(dayName);
       }
@@ -99,7 +98,7 @@ export default function ReportsScreen() {
       setInsights({
         maxCat: maxCatName,
         maxAmount: maxCatVal,
-        avgDaily: txs.length > 0 ? (totalAmount / 30).toFixed(2) : 0, // Promedio mensual estimado
+        avgDaily: txs.length > 0 ? (totalAmount / 30).toFixed(2) : 0,
         totalTx: txs.length
       });
 
@@ -107,7 +106,6 @@ export default function ReportsScreen() {
     finally { setLoading(false); }
   };
 
-  // --- GENERAR PDF ---
   const generatePDF = async () => {
     const htmlContent = `
       <html>
@@ -151,9 +149,23 @@ export default function ReportsScreen() {
     `;
 
     try {
+      // 1. Crear PDF
       const { uri } = await Print.printToFileAsync({ html: htmlContent });
-      await Sharing.shareAsync(uri, { UTI: '.pdf', mimeType: 'application/pdf' });
+      
+      // 2. Renombrar con fecha actual
+      const dateStr = new Date().toISOString().split('T')[0];
+      const newUri = `${FileSystem.cacheDirectory}reporte_${dateStr}.pdf`;
+
+      // 3. Mover usando la API legacy que sí funciona
+      await FileSystem.moveAsync({
+        from: uri,
+        to: newUri
+      });
+
+      // 4. Compartir
+      await Sharing.shareAsync(newUri, { UTI: '.pdf', mimeType: 'application/pdf' });
     } catch (error) {
+      console.log(error);
       Alert.alert("Error", "No se pudo generar el reporte");
     }
   };
@@ -162,8 +174,6 @@ export default function ReportsScreen() {
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      
-      {/* HEADER */}
       <View style={styles.headerRow}>
         <Text style={styles.headerTitle}>Reportes</Text>
         <TouchableOpacity style={styles.downloadBtn} onPress={generatePDF}>
@@ -172,7 +182,6 @@ export default function ReportsScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* 1. TARJETAS DE INSIGHTS */}
       <View style={styles.statsContainer}>
         <View style={styles.statBox}>
             <FontAwesome5 name="fire" size={20} color={colors.danger} style={{marginBottom:8}} />
@@ -194,7 +203,6 @@ export default function ReportsScreen() {
         </View>
       </View>
 
-      {/* 2. TEXTO DE ANÁLISIS */}
       <View style={styles.textBox}>
         <Text style={styles.textTitle}>Análisis Semanal</Text>
         <Text style={styles.textContent}>
@@ -206,7 +214,6 @@ export default function ReportsScreen() {
         </Text>
       </View>
 
-      {/* 3. GRÁFICO DE BARRAS (Tendencia) */}
       <Text style={styles.chartTitle}>Gasto últimos 7 días</Text>
       {barData && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -220,7 +227,7 @@ export default function ReportsScreen() {
                     backgroundGradientFrom: colors.card,
                     backgroundGradientTo: colors.card,
                     decimalPlaces: 0,
-                    color: (opacity = 1) => colors.primary, // Color de las barras
+                    color: (opacity = 1) => colors.primary,
                     labelColor: (opacity = 1) => colors.textSecondary,
                     barPercentage: 0.7,
                 }}
@@ -230,7 +237,6 @@ export default function ReportsScreen() {
         </ScrollView>
       )}
 
-      {/* 4. GRÁFICO CIRCULAR */}
       <Text style={styles.chartTitle}>Distribución por Categoría</Text>
       <View style={styles.pieCard}>
         {pieData.length > 0 ? (
@@ -256,26 +262,18 @@ export default function ReportsScreen() {
 
 const getStyles = (colors) => StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background, padding: 20, paddingTop: 60 },
-  
-  // Header
   headerRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
   headerTitle: { fontSize: 28, fontWeight: 'bold', color: colors.text },
   downloadBtn: { flexDirection: 'row', backgroundColor: colors.primary, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, alignItems: 'center' },
   downloadText: { color: '#fff', fontWeight: 'bold', marginLeft: 8 },
-
-  // Stats Grid
   statsContainer: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 25 },
   statBox: { width: '31%', backgroundColor: colors.card, padding: 12, borderRadius: 16, alignItems: 'center', elevation: 2, shadowColor: '#000', shadowOpacity: 0.05 },
   statLabel: { fontSize: 10, color: colors.textSecondary, textTransform: 'uppercase', fontWeight: 'bold' },
   statValue: { fontSize: 16, fontWeight: 'bold', color: colors.text, marginVertical: 2, textAlign: 'center' },
   statSub: { fontSize: 10, color: colors.textSecondary },
-
-  // Text Analysis
   textBox: { backgroundColor: colors.card, padding: 20, borderRadius: 16, marginBottom: 25, borderLeftWidth: 4, borderLeftColor: colors.primary },
   textTitle: { fontSize: 16, fontWeight: 'bold', color: colors.text, marginBottom: 8 },
   textContent: { fontSize: 14, color: colors.textSecondary, lineHeight: 22 },
-
-  // Charts
   chartTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 15, color: colors.text, marginTop: 10 },
   pieCard: { backgroundColor: colors.card, borderRadius: 20, padding: 10, elevation: 2, alignItems: 'center' }
 });

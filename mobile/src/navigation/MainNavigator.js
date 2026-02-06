@@ -48,14 +48,14 @@ export default function MainNavigator() {
         name="Reportes" 
         component={ReportsScreen} 
         options={{
-          tabBarIcon: ({ color }) => <Ionicons name="pie-chart" size={26} color={color} />
+          tabBarIcon: ({ color }) => <Ionicons name="stats-chart" size={26} color={color} />
         }}
       />
       <Tab.Screen 
-        name="Presupuesto" 
+        name="Ahorro" 
         component={BudgetScreen} 
         options={{
-          tabBarIcon: ({ color }) => <MaterialIcons name="account-balance-wallet" size={26} color={color} />
+          tabBarIcon: ({ color }) => <MaterialIcons name="savings" size={26} color={color} />
         }}
       />
       <Tab.Screen 

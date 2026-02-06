@@ -1,35 +1,29 @@
 const express = require('express');
 const { check } = require('express-validator');
-const auth = require('../middlewares/auth.middleware'); // <--- AHORA ES UNA FUNCIÓN DIRECTA
+const auth = require('../middlewares/auth.middleware');
 
-const { 
-    register, 
-    login, 
-    verifyEmail, 
-    googleLogin,
-    getProfile // <--- AGREGAR ESTO
-} = require('../controllers/auth.controller');
+// Importamos el OBJETO COMPLETO del controlador
+const authController = require('../controllers/auth.controller');
 
 const router = express.Router();
 
-// Ruta de Registro Manual
+// Registro
 router.post('/register', [
-    check('username', 'El usuario es requerido').not().isEmpty(),
-    check('email', 'Incluye un email válido').isEmail(),
-    check('password', 'Mínimo 6 caracteres').isLength({ min: 6 }),
-  ], register);
+    check('username', 'Usuario requerido').not().isEmpty(),
+    check('email', 'Email válido requerido').isEmail(),
+    check('password', 'Mínimo 6 caracteres').isLength({ min: 6 })
+], authController.register);
 
-// Ruta de Login Manual
-router.post('/login', login);
+// Login
+router.post('/login', authController.login);
 
-// Ruta de Verificación de Código Manual
-router.post('/verify', verifyEmail);
+// Verificar (placeholder)
+router.post('/verify', authController.verifyEmail);
 
-// Ruta de Login con Google
-router.post('/google', googleLogin);
+// Perfil
+router.get('/', auth, authController.getProfile);
 
-// --- AGREGAR ESTA RUTA PARA EL PERFIL ---
-// Esta usa 'auth' para verificar el token y devolver los datos del usuario
-router.get('/', auth, getProfile);
+// Actualizar Perfil (Nombre y Avatar)
+router.put('/update', auth, authController.updateUser);
 
-module.exports = router;  
+module.exports = router;

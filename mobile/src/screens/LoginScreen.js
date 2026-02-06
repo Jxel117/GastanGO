@@ -1,7 +1,7 @@
 import React, { useState, useContext } from 'react';
 import { 
   View, Text, TextInput, TouchableOpacity, StyleSheet, 
-  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, Alert,
+  ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView,
   Image
 } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -14,21 +14,25 @@ export default function LoginScreen({ navigation }) {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleLogin = async () => {
-    // Validaciones básicas antes de enviar
+    // Limpiar error anterior
+    setErrorMessage('');
+
+    // Validaciones básicas
     if (!email || !password) {
-      return Alert.alert('Campos vacíos', 'Por favor ingresa tu correo y contraseña');
+      setErrorMessage('Ingresa tu correo y contraseña');
+      return;
     }
     
     setLoading(true);
     try {
       await login(email, password);
-      // Si el login es exitoso, el AuthContext te redirige automáticamente al Home
+      // Si es exitoso, el AuthContext redirige automáticamente
     } catch (error) {
-      // Aquí atrapamos si el usuario no ha verificado su cuenta o si la clave está mal
       const msg = error.response?.data?.message || 'Credenciales incorrectas';
-      Alert.alert('Error', msg);
+      setErrorMessage(msg);
     } finally {
       setLoading(false);
     }
@@ -51,29 +55,43 @@ export default function LoginScreen({ navigation }) {
           <Text style={styles.subtitle}>Tu gestor de finanzas</Text>
         </View>
 
+        {/* MENSAJE DE ERROR */}
+        {errorMessage ? (
+          <View style={styles.errorContainer}>
+            <MaterialIcons name="error-outline" size={20} color="#EF4444" />
+            <Text style={styles.errorText}>{errorMessage}</Text>
+          </View>
+        ) : null}
+
         {/* FORMULARIO */}
         <View style={styles.form}>
           <Text style={styles.label}>Correo Electrónico</Text>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, errorMessage && styles.inputError]}>
             <TextInput 
               style={styles.input} 
               placeholder="ejemplo@gmail.com" 
               placeholderTextColor="#9CA3AF" 
               value={email} 
-              onChangeText={setEmail} 
+              onChangeText={(text) => {
+                setEmail(text);
+                setErrorMessage(''); // Limpiar error al escribir
+              }}
               keyboardType="email-address" 
               autoCapitalize="none" 
             />
           </View>
 
           <Text style={styles.label}>Contraseña</Text>
-          <View style={styles.inputContainer}>
+          <View style={[styles.inputContainer, errorMessage && styles.inputError]}>
             <TextInput 
               style={styles.input} 
               placeholder="Tu contraseña" 
               placeholderTextColor="#9CA3AF" 
               value={password} 
-              onChangeText={setPassword} 
+              onChangeText={(text) => {
+                setPassword(text);
+                setErrorMessage(''); // Limpiar error al escribir
+              }}
               secureTextEntry={!showPassword} 
             />
             <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
@@ -81,7 +99,11 @@ export default function LoginScreen({ navigation }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.loginButton} onPress={handleLogin} disabled={loading}>
+          <TouchableOpacity 
+            style={[styles.loginButton, loading && styles.loginButtonDisabled]} 
+            onPress={handleLogin} 
+            disabled={loading}
+          >
             {loading ? (
               <ActivityIndicator color="#fff" /> 
             ) : (
@@ -90,7 +112,7 @@ export default function LoginScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* SEPARADOR SIMPLE */}
+        {/* SEPARADOR */}
         <View style={styles.dividerContainer}>
           <View style={styles.dividerLine} />
           <Text style={styles.dividerText}>o</Text>
@@ -117,12 +139,49 @@ const styles = StyleSheet.create({
   logo: { width: 100, height: 100, resizeMode: 'contain', marginBottom: 12 },
   title: { fontSize: 28, fontWeight: 'bold', color: '#111827' },
   subtitle: { fontSize: 16, color: '#6B7280' },
+  
+  errorContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#FEE2E2', 
+    padding: 12, 
+    borderRadius: 12, 
+    marginBottom: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: '#EF4444'
+  },
+  errorText: { flex: 1, marginLeft: 8, color: '#DC2626', fontSize: 14 },
+  
   form: { width: '100%', marginBottom: 20 },
   label: { fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: 8, marginLeft: 4 },
-  inputContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 16, marginBottom: 16, paddingHorizontal: 16, height: 56 },
+  inputContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+    backgroundColor: '#fff', 
+    borderWidth: 1, 
+    borderColor: '#E5E7EB', 
+    borderRadius: 16, 
+    marginBottom: 16, 
+    paddingHorizontal: 16, 
+    height: 56 
+  },
+  inputError: { borderColor: '#EF4444', borderWidth: 2 },
   input: { flex: 1, height: '100%', color: '#1F2937', fontSize: 16 },
   eyeIcon: { padding: 4 },
-  loginButton: { backgroundColor: '#2563EB', height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', marginTop: 12, elevation: 4, shadowColor: '#2563EB', shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 5 },
+  loginButton: { 
+    backgroundColor: '#2563EB', 
+    height: 56, 
+    borderRadius: 28, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    marginTop: 12, 
+    elevation: 4, 
+    shadowColor: '#2563EB', 
+    shadowOffset: {width: 0, height: 4}, 
+    shadowOpacity: 0.3, 
+    shadowRadius: 5 
+  },
+  loginButtonDisabled: { backgroundColor: '#94A3B8' },
   loginText: { color: '#fff', fontWeight: 'bold', fontSize: 18 },
   dividerContainer: { flexDirection: 'row', alignItems: 'center', marginVertical: 24 },
   dividerLine: { flex: 1, height: 1, backgroundColor: '#E5E7EB' },

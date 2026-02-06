@@ -20,7 +20,7 @@ const CATEGORIES = {
 };
 
 export default function CategorySelectScreen({ route, navigation }) {
-  const { type } = route.params; // Recibimos si es 'income' o 'expense'
+  const { type } = route.params; 
   const list = CATEGORIES[type] || [];
 
   const handleSelect = (category) => {
@@ -29,13 +29,12 @@ export default function CategorySelectScreen({ route, navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* HEADER con botón Atrás */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <MaterialIcons name="arrow-back" size={28} color="#374151" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Elige una Categoría</Text>
-        <View style={{width: 40}} /> {/* Espacio vacío para equilibrar */}
+        <View style={{width: 40}} />
       </View>
 
       <FlatList
@@ -65,7 +64,6 @@ const styles = StyleSheet.create({
   },
   backBtn: { padding: 8, backgroundColor: '#fff', borderRadius: 12, elevation: 2 },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: '#1E293B' },
-  
   grid: { padding: 10 },
   card: { 
     flex: 1, margin: 10, backgroundColor: '#fff', borderRadius: 20, padding: 20, 

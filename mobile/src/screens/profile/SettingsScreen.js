@@ -1,11 +1,12 @@
-import React, { useState, useContext, useEffect } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, Text, StyleSheet, Switch, TouchableOpacity, ScrollView, Platform, Alert } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { ThemeContext } from '../../context/ThemeContext';
 import { scheduleDailyNotifications, cancelNotifications, registerForPushNotificationsAsync } from '../../services/notification.service';
-import * as FileSystem from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { Asset } from 'expo-asset';
+// 👇 IMPORTACIÓN CORREGIDA:
+import * as FileSystem from 'expo-file-system/legacy';
 
 export default function SettingsScreen({ navigation }) {
   const { theme, toggleTheme, isDarkMode } = useContext(ThemeContext);
@@ -13,7 +14,6 @@ export default function SettingsScreen({ navigation }) {
 
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-  // Manejo de Notificaciones
   const toggleNotifications = async (value) => {
     setNotificationsEnabled(value);
     if (value) {
@@ -23,46 +23,44 @@ export default function SettingsScreen({ navigation }) {
         }
         const hasPermission = await registerForPushNotificationsAsync();
         if (hasPermission) {
-            await scheduleDailyNotifications(); // Se programan a las 11:30, 19:30, 23:30
-            Alert.alert("Activado", "Te avisaremos a las 11:30, 19:30 y 23:30 para registrar tus gastos.");
+            await scheduleDailyNotifications();
+            Alert.alert("Activado", "Te avisaremos diariamente para que no olvides registrar tus gastos.");
         } else {
             setNotificationsEnabled(false);
-            Alert.alert("Permiso denegado", "No podemos enviar notificaciones sin tu permiso.");
+            Alert.alert("Permiso denegado", "Habilita las notificaciones en tu celular.");
         }
     } else {
         await cancelNotifications();
     }
   };
 
-  // Manejo de PDF (Descargar Términos)
   const handleDownloadPDF = async () => {
     if (Platform.OS === 'web') {
-        // En web, simplemente abrimos el archivo (si estuviera hosteado) o mostramos alerta
-        Alert.alert("Descarga", "En la versión web, el PDF se abriría en una nueva pestaña.");
+        Alert.alert("Descarga", "No disponible en web.");
         return;
     }
 
     try {
-        // 1. Cargar el asset
+        // Cargar el asset (Asegúrate de que 'terminos.pdf' está en la carpeta assets raíz)
         const asset = Asset.fromModule(require('../../../assets/terminos.pdf'));
-        await asset.downloadAsync();
+        await asset.downloadAsync(); 
 
-        // 2. Mover a carpeta caché
         const fileUri = `${FileSystem.cacheDirectory}terminos_condiciones.pdf`;
+        
+        // Copiar el archivo usando la API legacy
         await FileSystem.copyAsync({
-            from: asset.localUri,
+            from: asset.localUri || asset.uri,
             to: fileUri
         });
 
-        // 3. Compartir / Guardar
         if (await Sharing.isAvailableAsync()) {
-            await Sharing.shareAsync(fileUri);
+            await Sharing.shareAsync(fileUri, { mimeType: 'application/pdf', UTI: '.pdf' });
         } else {
             Alert.alert("Error", "No se puede compartir en este dispositivo");
         }
     } catch (error) {
         console.log("Error PDF:", error);
-        Alert.alert("Error", "No se encontró el archivo 'terminos.pdf' en assets.");
+        Alert.alert("Error", "No se encontró el archivo 'terminos.pdf'. Verifica que esté en la carpeta assets.");
     }
   };
 
@@ -70,7 +68,6 @@ export default function SettingsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
             <MaterialIcons name="arrow-back" size={28} color={colors.text} />
@@ -81,7 +78,6 @@ export default function SettingsScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.content}>
         
-        {/* SECCIÓN GENERAL */}
         <Text style={styles.sectionTitle}>Apariencia</Text>
         <View style={styles.section}>
             <View style={styles.row}>
@@ -109,7 +105,7 @@ export default function SettingsScreen({ navigation }) {
                     </View>
                     <View>
                         <Text style={styles.label}>Recordatorios Diarios</Text>
-                        <Text style={styles.subLabel}>11:30 AM • 07:30 PM • 11:30 PM</Text>
+                        <Text style={styles.subLabel}>No te olvides de tus gastos</Text>
                     </View>
                 </View>
                 <Switch 
@@ -121,7 +117,6 @@ export default function SettingsScreen({ navigation }) {
             </View>
         </View>
 
-        {/* SECCIÓN LEGAL */}
         <Text style={styles.sectionTitle}>Legal</Text>
         <View style={styles.section}>
              <TouchableOpacity style={styles.linkRow} onPress={handleDownloadPDF}>
@@ -150,16 +145,13 @@ const getStyles = (colors) => StyleSheet.create({
   },
   backBtn: { padding: 8, backgroundColor: colors.card, borderRadius: 12 },
   headerTitle: { fontSize: 20, fontWeight: 'bold', color: colors.text },
-  
   content: { paddingHorizontal: 20 },
   sectionTitle: { fontSize: 13, fontWeight: 'bold', color: colors.textSecondary, marginBottom: 10, marginTop: 10, textTransform: 'uppercase', letterSpacing: 1 },
   section: { backgroundColor: colors.card, borderRadius: 20, padding: 5, marginBottom: 20 },
-  
   row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15 },
   rowLeft: { flexDirection: 'row', alignItems: 'center', gap: 15 },
   iconBox: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
   label: { fontSize: 16, fontWeight: '600', color: colors.text },
   subLabel: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
-  
   linkRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 15 },
 });

@@ -32,21 +32,21 @@ export default function TypeSelectScreen({ navigation }) {
       <View style={styles.content}>
         <Text style={styles.title}>¿Qué deseas registrar?</Text>
         
-        <View style={styles.row}>
-          {/* Opción Gasto */}
-          <TouchableOpacity style={[styles.btn, styles.expense]} onPress={() => selectType('expense')}>
-            <View style={[styles.iconCircle, { backgroundColor: '#FECACA' }]}>
-                <MaterialIcons name="arrow-downward" size={40} color="#DC2626" />
-            </View>
-            <Text style={[styles.btnText, { color: '#DC2626' }]}>Gasto</Text>
-          </TouchableOpacity>
-          
+        <View style={styles.row}>        
           {/* Opción Ingreso */}
           <TouchableOpacity style={[styles.btn, styles.income]} onPress={() => selectType('income')}>
             <View style={[styles.iconCircle, { backgroundColor: '#A7F3D0' }]}>
                 <MaterialIcons name="arrow-upward" size={40} color="#059669" />
             </View>
             <Text style={[styles.btnText, { color: '#059669' }]}>Ingreso</Text>
+          </TouchableOpacity>
+
+          {/* Opción Gasto */}
+          <TouchableOpacity style={[styles.btn, styles.expense]} onPress={() => selectType('expense')}>
+            <View style={[styles.iconCircle, { backgroundColor: '#FECACA' }]}>
+                <MaterialIcons name="arrow-downward" size={40} color="#DC2626" />
+            </View>
+            <Text style={[styles.btnText, { color: '#DC2626' }]}>Gasto</Text>
           </TouchableOpacity>
         </View>
       </View>

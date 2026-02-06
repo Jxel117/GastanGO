@@ -1,145 +1,153 @@
 const { User } = require('../models');
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
-const { sendWelcomeEmail } = require('../services/email.service'); 
 
-// --- 1. REGISTRO (HÍBRIDO: MANUAL O GOOGLE) ---
-// EN: controllers/auth.controller.js
-
-exports.register = async (req, res) => {
+// 1. REGISTRO
+const register = async (req, res) => {
   const errors = validationResult(req);
-  if (!errors.isEmpty()) return res.status(400).json({ errors: errors.array() });
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ success: false, errors: errors.array() });
+  }
 
   const { username, email, password } = req.body;
 
-  // Validación Gmail
   if (!email.toLowerCase().endsWith('@gmail.com')) {
-    return res.status(400).json({ msg: 'Solo se permiten cuentas @gmail.com' });
+    return res.status(400).json({ success: false, message: 'Solo correos @gmail.com' });
   }
 
   try {
-    let user = await User.findOne({ where: { email } });
-    if (user) return res.status(400).json({ msg: 'El usuario ya existe' });
+    const userExists = await User.findOne({ where: { email } });
+    if (userExists) {
+        return res.status(400).json({ success: false, message: 'El correo ya está registrado' });
+    }
 
-    // --- CAMBIO IMPORTANTE: ---
-    // Creamos el usuario YA verificado para que pueda entrar directo.
-    // (Más adelante podrás activar la lógica del código si quieres)
-    user = await User.create({ 
+    const user = await User.create({ 
       username, 
       email, 
-      password,
-      isVerified: true, // <--- ESTO SOLUCIONA EL BLOQUEO DE LOGIN
-      verificationCode: null 
+      password, 
+      isVerified: true,
+      avatar: null 
     });
 
-    // --- GENERAR TOKEN INMEDIATAMENTE ---
-    // Esto es lo que le faltaba a tu AuthContext para funcionar
+    const payload = { user: { id: user.id } };
+    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
+      if (err) throw err;
+      res.json({ 
+        success: true, 
+        token, 
+        user: { id: user.id, username, email, avatar: user.avatar } 
+      });
+    });
+
+  } catch (err) {
+    console.error("Error en registro:", err);
+    res.status(500).json({ success: false, message: 'Error del servidor' });
+  }
+};
+
+// 2. LOGIN CON LOGS DE DEPURACIÓN
+const login = async (req, res) => {
+  const { email, password } = req.body;
+  
+  console.log("➡️ [LOGIN] Intento de acceso para:", email);
+
+  try {
+    // 1. Buscar usuario
+    console.log("🔍 [LOGIN] Buscando usuario en BD...");
+    const user = await User.findOne({ where: { email } });
+    
+    if (!user) {
+      console.log("❌ [LOGIN] Usuario no encontrado.");
+      return res.status(400).json({ success: false, message: 'Credenciales inválidas (Email)' });
+    }
+    console.log("✅ [LOGIN] Usuario encontrado (ID):", user.id);
+
+    // 2. Comparar contraseña
+    console.log("🔐 [LOGIN] Comparando contraseñas...");
+    // A veces esto tarda en servidores gratuitos
+    const isMatch = await user.comparePassword(password);
+    
+    if (!isMatch) {
+      console.log("❌ [LOGIN] Contraseña incorrecta.");
+      return res.status(400).json({ success: false, message: 'Credenciales inválidas (Pass)' });
+    }
+    console.log("✅ [LOGIN] Contraseña correcta.");
+
+    // 3. Generar Token
+    console.log("🎫 [LOGIN] Generando Token...");
     const payload = { user: { id: user.id } };
     
     jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
-      if (err) throw err;
-      // Devolvemos el token y el usuario
-      res.status(201).json({ token, user });
-    });
-
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Error del servidor');
-  }
-};
-
-// --- 2. LOGIN CON GOOGLE (SOLO VERIFICACIÓN) ---
-exports.googleLogin = async (req, res) => {
-  const { email, name } = req.body;
-
-  // Validación Gmail
-  if (!email.toLowerCase().endsWith('@gmail.com')) {
-    return res.status(400).json({ msg: 'Acceso restringido a cuentas @gmail.com' });
-  }
-
-  try {
-    // Buscamos si el usuario ya existe en la BD
-    let user = await User.findOne({ where: { email } });
-
-    if (!user) {
-      // CASO A: NO EXISTE -> Avisamos al Frontend para que lo mande a la pantalla de Registro
-      return res.status(200).json({ 
-        isNewUser: true, 
-        email: email, // Devolvemos el email para que se autollene en el formulario
-        name: name 
+      if (err) {
+          console.error("❌ [LOGIN] Error firmando token:", err);
+          throw err;
+      }
+      
+      console.log("🚀 [LOGIN] Éxito! Enviando respuesta.");
+      res.json({ 
+        success: true, 
+        token, 
+        user: { 
+            id: user.id, 
+            username: user.username, 
+            email: user.email, 
+            avatar: user.avatar 
+        } 
       });
-    }
-
-    // CASO B: YA EXISTE -> Generamos Token y entra directo
-    const payload = { user: { id: user.id } };
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
-      if (err) throw err;
-      res.json({ token, user, isNewUser: false });
     });
 
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Error en el servidor');
+    console.error("🔥 [LOGIN] ERROR CRÍTICO:", err);
+    res.status(500).json({ success: false, message: 'Error del servidor' });
   }
 };
 
-// --- 3. VERIFICAR CÓDIGO (SOLO FLUJO MANUAL) ---
-exports.verifyEmail = async (req, res) => {
-  const { email, code } = req.body;
-  
+// 3. PERFIL
+const getProfile = async (req, res) => {
   try {
-    const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(400).json({ msg: 'Usuario no encontrado' });
+    const user = await User.findByPk(req.user.id, { attributes: { exclude: ['password'] } });
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+    
+    res.json({ success: true, ...user.toJSON() });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Error del servidor' });
+  }
+};
 
-    if (user.verificationCode !== code) {
-      return res.status(400).json({ msg: 'Código incorrecto' });
-    }
+// 4. ACTUALIZAR
+const updateUser = async (req, res) => {
+  const { username, avatar } = req.body;
 
-    // Activar usuario y limpiar código
-    user.isVerified = true;
-    user.verificationCode = null; 
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) return res.status(404).json({ success: false, message: 'Usuario no encontrado' });
+
+    if (username) user.username = username;
+    if (avatar) user.avatar = avatar;
+
     await user.save();
 
-    res.json({ msg: 'Cuenta verificada exitosamente' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Error del servidor');
-  }
-};
-
-// --- 4. LOGIN MANUAL (REQUIERE ESTAR VERIFICADO) ---
-exports.login = async (req, res) => {
-  const { email, password } = req.body;
-
-  try {
-    const user = await User.findOne({ where: { email } });
-    if (!user) return res.status(400).json({ msg: 'Credenciales inválidas' });
-
-    // VERIFICAR SI LA CUENTA ESTÁ ACTIVADA
-    if (!user.isVerified) {
-      return res.status(403).json({ msg: 'Tu cuenta no ha sido verificada. Revisa tu correo.' });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) return res.status(400).json({ msg: 'Credenciales inválidas' });
-
-    const payload = { user: { id: user.id } };
-    jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30d' }, (err, token) => {
-      if (err) throw err;
-      res.json({ token });
+    res.json({ 
+        success: true, 
+        message: 'Actualizado', 
+        user: { id: user.id, username: user.username, email: user.email, avatar: user.avatar } 
     });
   } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Error del servidor');
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Error al actualizar' });
   }
 };
 
-// --- 5. OBTENER PERFIL ---
-exports.getProfile = async (req, res) => {
-    try {
-      const user = await User.findByPk(req.user.id, { attributes: { exclude: ['password'] } });
-      res.json(user);
-    } catch (err) {
-      res.status(500).send('Server error');
-    }
+// 5. VERIFICAR
+const verifyEmail = async (req, res) => {
+    res.json({ success: true, message: 'Verificado' });
+};
+
+// EXPORTACIÓN LIMPIA (CommonJS)
+module.exports = {
+    register,
+    login,
+    getProfile,
+    updateUser,
+    verifyEmail
 };
