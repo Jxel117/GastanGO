@@ -39,3 +39,90 @@ Sigue estos pasos para probar el proyecto en tu entorno local:
 Abre una terminal en la carpeta del proyecto y ejecuta:
 ```bash
 npm install
+
+
+---
+
+## 🏗️ Arquitectura en Resumen
+
+### Stack Tecnológico
+
+```
+┌─────────────────────────────────────────────┐
+│  Frontend (React + Vite)                    │
+│  - React Router, Context API                │
+│  - Tailwind CSS, Framer Motion              │
+│  - Axios con JWT interceptor                │
+└──────────────┬──────────────────────────────┘
+               │ REST/JSON/HTTPS
+               ↓
+┌──────────────────────────────────────────────┐
+│  Backend (Node.js + Express)                 │
+│  - Sequelize ORM                             │
+│  - JWT con Token Blacklist                   │
+│  - Swagger/OpenAPI Docs                      │
+│  - bcryptjs, helmet, CORS                    │
+└──────────────┬───────────────────────────────┘
+               │ SQL/TCP
+               ↓
+┌──────────────────────────────────────────────┐
+│  Database (PostgreSQL en Docker)             │
+│  - 4 Tablas (Users, Transactions, Tokens)    │
+│  - Relaciones 1:N con CASCADE DELETE         │
+│  - pgAdmin para gestión visual               │
+└──────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────┐
+│  Mobile (React Native + Expo)                │
+│  - AsyncStorage para persistencia            │
+│  - Misma API backend                         │
+└──────────────────────────────────────────────┘
+```
+
+### Patrones Implementados
+
+| Patrón | Dónde | Beneficio |
+|--------|-------|----------|
+| **MVC** | Backend | Separación responsabilidades |
+| **Context API** | Frontend | State management sin Redux |
+| **JWT + Blacklist** | Auth | Logout inmediato, seguridad |
+| **Middleware** | Backend | Autenticación centralizada |
+| **ORM (Sequelize)** | Backend | SQL injection prevention |
+| **Interceptor** | Frontend/Mobile | Token injection automático |
+| **Singleton** | Services | Instancia única compartida |
+
+### Flujos Críticos
+
+| Flujo | Entrada | Salida | Validaciones |
+|-------|---------|--------|-------------|
+| **Registro** | email, password, username | JWT token | Email @gmail, contraseña 6+ chars |
+| **Login** | email, password | JWT + Token en BD | Contraseña válida, usuario existe |
+| **Logout** | JWT válido | Confirmation 200 | Token revocado en BD |
+| **Crear TX** | amount, type, category, date | TX guardada | Amount > 0, type enum, userId FK |
+| **Ver TX** | JWT válido | Array de TX | Aisladas por usuario |
+
+---
+
+## 🔐 Seguridad Implementada
+
+✅ **Implementado:**
+- Password hashing (bcryptjs round 10)
+- JWT con expiración (7 días)
+- Token blacklist en BD (logout inmediato)
+- Middleware de autenticación
+- Validaciones express-validator
+- Helmet (security headers)
+- CORS configurado
+- Contraseña nunca en respuestas API
+- userId extraído del token (no confiable del cliente)
+
+⚠️ **Falta para Producción:**
+- Rate limiting
+- Email verification
+- HTTPS obligatorio
+- Refresh tokens (para mayor seguridad)
+- Logs de auditoría
+- Backup automático
+- Secrets en variables de entorno
+
+---
