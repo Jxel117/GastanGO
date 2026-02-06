@@ -1,7 +1,9 @@
 ---
 title: "GastanGO"
 subtitle: "Sistema de Gestión de Gastos Personales (PERN + Mobile)"
-author: "Equipo de Desarrollo"
+author: 
+  - "Joel Stalin Tapia Pinta"
+  - "Freddy Alexander Matailo Mora"
 date: last-modified
 lang: es
 format:
@@ -13,11 +15,15 @@ format:
     number-sections: true
     code-copy: true
     smooth-scroll: true
-    css: styles.css
+    embed-resources: true
   pdf:
     toc: true
     number-sections: true
     documentclass: report
+    papersize: letter
+    colorlinks: true
+  gfm:
+    output-file: "README.md"
 ---
 
 # Resumen Ejecutivo {.unnumbered}
@@ -47,10 +53,10 @@ Este documento presenta la **documentación técnica, arquitectónica y el manua
 Desarrollar un sistema multiplataforma para la gestión de gastos personales utilizando el stack **PERN** y una aplicación móvil basada en **Expo**.
 
 ## 🚀 Objetivos Específicos
-* **Arquitectura:** Implementar un modelo cliente-servidor escalable.
-* **Persistencia:** Integrar una base de datos relacional (PostgreSQL).
-* **Movilidad:** Desarrollar una aplicación móvil cross-platform (Android/iOS).
-* **UX/UI:** Garantizar una experiencia de usuario intuitiva y segura.
+* **Arquitectura:** Implementar un modelo cliente-servidor desacoplado y escalable.
+* **Persistencia:** Diseñar e integrar una base de datos relacional robusta en PostgreSQL.
+* **Movilidad:** Desarrollar una aplicación móvil nativa funcional para Android e iOS.
+* **UX/UI:** Garantizar una experiencia de usuario intuitiva mediante interfaces modernas.
 :::
 
 # Alcance del Proyecto
@@ -64,6 +70,8 @@ Desarrollar un sistema multiplataforma para la gestión de gastos personales uti
 
 # Arquitectura del Sistema
 
+El sistema sigue un patrón de diseño **cliente-servidor** desacoplado. A continuación se detallan los niveles basados en el **Modelo C4**.
+
 ## Diagramas C4 (Structurizr)
 
 Para entender la arquitectura, utilizamos el modelo C4. Los siguientes diagramas están en formato vectorial (SVG) para una visualización de alta calidad sin pérdida de resolución.
@@ -72,41 +80,80 @@ Para entender la arquitectura, utilizamos el modelo C4. Los siguientes diagramas
 ## 📌 Guía: Cómo interpretar los diagramas Structurizr
 
 **Niveles de Zoom:**
-1.  **C1 - Context:** Visión general del negocio y actores externos.
-2.  **C2 - Container:** Tecnología (Web, API, Mobile, DB).
-3.  **C3 - Component:** Estructura interna (Controladores, Servicios).
-3.  **C4 - Despliegue - Codigo:** Estructura a nivel de codigo y despliegue.
+
+1. **C1 - Context:** Visión general del negocio y actores externos.
+2. **C2 - Container:** Tecnología (Web, API, Mobile, DB).
+3. **C3 - Component:** Estructura interna (Controladores, Servicios).
+4. **C4 - Despliegue:** Infraestructura y configuración de despliegue.
 :::
 
 ### Galería de Arquitectura
 
 ::: {layout-ncol=2}
-![Vista de Contexto](docs/architecure/MODEL-C4-v1.3Context.svg){.lightbox group="arquitectura" description="Vista C1: Contexto del Sistema"}
+![Vista de Contexto (C1)](docs/architecure/MODEL-C4-v1.3Context.svg){.lightbox group="arquitectura" description="Vista C1: Contexto del Sistema"}
 
-![Vista de Contenedores](docs/architecure/MODEL-C4-v1.3Containers.svg){.lightbox group="arquitectura" description="Vista C2: Contenedores y Tecnologías"}
+![Vista de Contenedores (C2)](docs/architecure/MODEL-C4-v1.3Containers.svg){.lightbox group="arquitectura" description="Vista C2: Contenedores y Tecnologías"}
 
-![Vista de Componentes (Backend)](docs/architecure/MODEL-C4-v1.3BackendComponents.svg){.lightbox group="arquitectura" description="Vista C3: Componentes Internos Backend"}
+![Componentes Backend (C3)](docs/architecure/MODEL-C4-v1.3BackendComponents.svg){.lightbox group="arquitectura" description="Vista C3: Componentes Internos Backend"}
 
-![Vista de Componentes (Frontend)](docs/architecure/MODEL-C4-v1.3WebComponents.svg){.lightbox group="arquitectura" description="Vista C3: Componentes Internos Fronted"}
+![Componentes Frontend (C3)](docs/architecure/MODEL-C4-v1.3WebComponents.svg){.lightbox group="arquitectura" description="Vista C3: Componentes Internos Frontend"}
 
-![Vista de Despliegue](docs/architecure/MODEL-C4-v1.3Despliegue.svg){.lightbox group="arquitectura" description="Infraestructura y Docker"}
+![Infraestructura de Despliegue](docs/architecure/MODEL-C4-v1.3Despliegue.svg){.lightbox group="arquitectura" description="Infraestructura y Docker"}
+
+![Diagrama de codigo](docs/architecure/GastanGOUML.png){.lightbox group="arquitectura" description="Diagrama UML de Clases y Relaciones"}
+
+![Diagrama de codigo Frontend](docs/architecure/GastanGOFrontendCode.png){.lightbox group="arquitectura" description="Diagrama codigo Frontend"}
 :::
 
-<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
-  <i class="bi bi-folder-fill"></i> Explorar carpeta de diagramas
-</a>
-<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
-  <i class="bi bi-folder-fill"></i> Explorar carpeta de diagramas (keys)
-</a>
-<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
-  <i class="bi bi-folder-fill"></i> Explorar demostracion movil
-</a>
+<div class="d-flex flex-wrap gap-2">
+  <a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
+    <i class="bi bi-folder-fill"></i> Explorar diagramas
+  </a>
+  <a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
+    <i class="bi bi-key-fill"></i> Ver Keys
+  </a>
+</div>
+
+## Llaves de Arquitectura (Leyendas)
+
+Los diagramas de arquitectura utilizan una **notación estandarizada** basada en el modelo C4. A continuación se presentan las llaves o leyendas que explican los elementos visuales empleados en cada nivel arquitectónico:
+
+::: {.callout-tip collapse="true"}
+## 🔑 Importancia de las Llaves
+Las llaves proporcionan una guía visual para interpretar correctamente cada diagrama, identificando los tipos de componentes, las relaciones entre ellos y las tecnologías empleadas.
+:::
+
+### Leyendas por Nivel de Arquitectura
+
+::: {layout-ncol=3}
+![Leyenda - Contexto](docs/architecure/keys/MODEL-C4-v1.3Context-key.svg){.lightbox group="keys" description="C1 Key: Elementos del contexto del sistema"}
+
+![Leyenda - Contenedores](docs/architecure/keys/MODEL-C4-v1.3Containers-key.svg){.lightbox group="keys" description="C2 Key: Tecnologías y contenedores"}
+
+![Leyenda - Login](docs/architecure/keys/MODEL-C4-v1.3login-key.svg){.lightbox group="keys" description="Key: Flujo de autenticación"}
+
+![Leyenda - Backend](docs/architecure/keys/MODEL-C4-v1.3BackendComponents-key.svg){.lightbox group="keys" description="C3 Key: Componentes internos del backend"}
+
+![Leyenda - Frontend](docs/architecure/keys/MODEL-C4-v1.3WebComponents-key.svg){.lightbox group="keys" description="C3 Key: Componentes internos del frontend"}
+
+![Leyenda - Despliegue](docs/architecure/keys/MODEL-C4-v1.3Despliegue-key.svg){.lightbox group="keys" description="C4 Key: Infraestructura de despliegue"}
+
+:::
+
+::: {.callout-important}
+## 📐 Convenciones de Diseño
+- **Rectángulos azules:** Sistemas externos (usuarios, servicios de terceros)
+- **Rectángulos verdes:** Contenedores de la aplicación (Web, API, Mobile, DB)
+- **Componentes internos:** Capas de controladores, servicios y modelos
+- **Flechas continuas:** Comunicación sincrónica (HTTP/REST)
+- **Flechas punteadas:** Dependencias o relaciones opcionales
+:::
 
 ## Stack Tecnológico
 
 El sistema sigue una arquitectura **cliente-servidor** desacoplada:
 
-* **Frontend Web:** React (Vite + Tailwind)
+* **Frontend Web:** React (Vite + Tailwind CSS)
 * **Backend:** Node.js + Express (API REST)
 * **Base de Datos:** PostgreSQL 16
 * **Mobile App:** Expo (React Native)
@@ -116,20 +163,48 @@ El sistema sigue una arquitectura **cliente-servidor** desacoplada:
 La aplicación móvil fue desarrollada siguiendo el paradigma **cross-platform**, permitiendo su ejecución tanto en Android como en iOS a partir de una única base de código.
 
 **Ventajas Clave:**
-1.  Reducción de costos de desarrollo.
-2.  Mantenimiento unificado.
-3.  Consistencia en la experiencia de usuario.
 
-# Seguridad
+1. Reducción de costos de desarrollo.
+2. Mantenimiento unificado.
+3. Consistencia en la experiencia de usuario.
+
+## Capturas de Pantalla de la Aplicación Móvil
+
+A continuación se presentan las principales pantallas de la aplicación móvil **GastanGO**, mostrando la interfaz de usuario y las funcionalidades implementadas:
+
+::: {layout-ncol=3}
+![Pantalla de Inicio](docs/assets/Inicio-Mobile.jpeg){.lightbox group="mobile" description="Splash Screen - Inicio de la aplicación"}
+
+![Registro de Usuario](docs/assets/Registro_Usuario-Mobile.jpeg){.lightbox group="mobile" description="Formulario de registro de nuevos usuarios"}
+
+![Inicio de Sesión](docs/assets/Login-Mobile.jpeg){.lightbox group="mobile" description="Autenticación de usuarios existentes"}
+
+![Dashboard Principal](docs/assets/Ahorro-Mobile.jpeg){.lightbox group="mobile" description="Vista principal con saldo y resumen"}
+
+![Ajustes de Perfil](docs/assets/Ajustes_Perfil-MOBILE.jpeg){.lightbox group="mobile" description="Configuración de cuenta y preferencias"}
+![Reportes y Análisis](docs/assets/Reportes-Mobile.jpeg){.lightbox group="mobile" description="Visualización de historial de transacciones"}
+:::
+
+::: {.callout-note}
+## 📱 Experiencia de Usuario
+La aplicación mantiene una interfaz consistente y moderna, siguiendo los principios de **Material Design** para Android y **Human Interface Guidelines** para iOS, garantizando una experiencia nativa en ambas plataformas.
+:::
+
+# Seguridad e Implementación
 
 El sistema implementa mecanismos de defensa en profundidad:
 
 * 🔐 **Autenticación:** JWT (JSON Web Tokens).
-* 🛡️ **Validación:** Middleware de validación en backend (Zod/Express-validator).
+* 🛡️ **Validación de Datos:** Uso de middlewares en Express con librerías de validación (Zod/Express-validator).
+* 🔒 **Cifrado:** Hasheo de credenciales en base de datos.
 * 🚦 **Rutas Protegidas:** Guardias de navegación en Frontend y Mobile.
+* 🌐 **Cross-Platform:** Código unificado mediante el SDK de Expo.
 
 ---
-# Video Demostrativo
+
+# Documentación Multimedia
+
+## Demostración Funcional
 
 A continuación, se presenta una demostración funcional del sistema en operación:
 
@@ -140,7 +215,7 @@ A continuación, se presenta una demostración funcional del sistema en operaci�
 ::: {.content-visible when-format="pdf"}
 El video demostrativo del sistema está disponible en el siguiente enlace:
 
-🔗 https://www.youtube.com/watch?v=riEiAfkj_CM
+🔗 [Ver Video en YouTube](https://www.youtube.com/watch?v=riEiAfkj_CM)
 :::
 
 ---
@@ -162,30 +237,40 @@ Puedes acceder a la última compilación de desarrollo a través de Expo:
 
 ## Uso Básico
 
-1.  **Registro:** Crea una cuenta con tu correo electrónico.
-2.  **Dashboard:** Visualiza tu saldo actual.
-3.  **Nueva Transacción:** Pulsa el botón `+` para agregar un gasto o ingreso.
-4.  **Historial:** Revisa tus movimientos pasados en la pestaña de reportes.
+1. **Registro:** Crea una cuenta con tu correo electrónico.
+2. **Dashboard:** Visualiza tu saldo actual y resumen de transacciones.
+3. **Nueva Transacción:** Pulsa el botón `+` para agregar un gasto o ingreso.
+4. **Historial:** Revisa tus movimientos pasados en la pestaña de reportes.
 
 # Repositorio y Código Fuente
 
-El desarrollo es de código abierto y está disponible para revisión.
+El desarrollo es de código abierto y está disponible para revisión y contribución.
 
 ::: {.sourceCode}
 https://github.com/Jxel117/GastanGO
 :::
 
-[<i class="bi bi-github"></i> Ver Repositorio en GitHub](https://github.com/Jxel117/GastanGO){.btn .btn-outline-dark}
+[<i class="bi bi-github"></i> Ver Repositorio en GitHub](https://github.com/Jxel117/GastanGO){.btn .btn-outline-dark target="_blank"}
 
 # Conclusiones
 
-GastanGO demuestra la viabilidad de integrar tecnologías web modernas con desarrollo móvil.
+GastanGO demuestra la viabilidad de integrar tecnologías web modernas con desarrollo móvil multiplataforma, ofreciendo una solución práctica y eficiente para la gestión de finanzas personales.
 
-Desarrollado por estudiantes de la Universidad Nacional de Loja de la carrera Ingenieria en Ciencias de la Computacion
+El proyecto evidencia la aplicación de buenas prácticas en arquitectura de software, seguridad y experiencia de usuario.
+
+---
+
+**Desarrollado por:**
+
+* **Joel Stalin Tapia Pinta** (Jxel117)
+* **Freddy Alexander Matailo Mora** (FreddyAlx1998Mora12)
+
 ::: {.sourceCode}
 https://github.com/Jxel117/
 :::
+
 ::: {.sourceCode}
 https://github.com/FreddyAlx1998Mora12
 :::
 
+*Universidad Nacional de Loja - Ingeniería en Ciencias de la Computación - 2026*

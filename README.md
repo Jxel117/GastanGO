@@ -1,128 +1,274 @@
-# GastanGO - Frontend Web
+# GastanGO
+Joel Stalin Tapia Pinta, Freddy Alexander Matailo Mora
+2026-02-06
 
-**Sistema de Gestión de Finanzas Personales**
+# Resumen Ejecutivo
 
-Este proyecto constituye la capa visual (Frontend) de la plataforma **GastanGO**. Es una aplicación web moderna (SPA) diseñada para que los usuarios puedan registrar sus ingresos y gastos, visualizar su balance en tiempo real y gestionar sus categorías de forma sencilla desde cualquier dispositivo.
+> [!NOTE]
+>
+> ### Sobre el Proyecto
+>
+> **GastanGO** es un ecosistema digital diseñado para la salud
+> financiera. Combina la robustez de un backend empresarial con la
+> flexibilidad de una experiencia móvil nativa.
 
----
+GastanGO es un sistema multiplataforma orientado a la gestión y control
+de gastos, desarrollado bajo el stack **PERN (PostgreSQL, Express, React
+y Node.js)** e integrado con una **aplicación móvil cross-platform**
+construida con **Expo (React Native)**.
 
-## Tecnologías Usadas
+El proyecto busca ofrecer una solución accesible, escalable y segura
+para el registro, visualización y análisis de gastos personales.
 
-El desarrollo se realizó utilizando un stack moderno enfocado en el rendimiento y la experiencia de usuario:
+------------------------------------------------------------------------
 
-* **Core:** [React](https://reactjs.org/) con [Vite](https://vitejs.dev/) para un entorno de desarrollo rápido.
-* **Estilos:** [Tailwind CSS](https://tailwindcss.com/) para un diseño responsivo y limpio (Mobile First).
-* **Estado:** React Context API para manejar la sesión del usuario y los datos de transacciones globalmente.
-* **Conexión:** Axios para consumir la API REST del backend (con interceptores para seguridad JWT).
-* **Gráficos:** Recharts para la visualización estadística de datos.
+# Introducción
 
----
+En la actualidad, la gestión eficiente de los recursos económicos
+personales se ha convertido en una necesidad fundamental. GastanGO surge
+como una propuesta tecnológica que integra tecnologías web modernas y
+desarrollo móvil multiplataforma.
 
-## Funcionalidades Principales
+Este documento presenta la **documentación técnica, arquitectónica y el
+manual de usuario**, describiendo su funcionamiento interno y guías de
+uso.
 
-1.  **Autenticación:** Login y Registro de usuarios conectados al backend.
-2.  **Dashboard:** Visualización de KPIs (Saldo, Ingresos, Gastos) y gráficos estadísticos.
-3.  **Gestión de Transacciones:** Formulario intuitivo (Wizard) para registrar movimientos.
-4.  **Diseño Responsivo:** Interfaz adaptable a móviles, tablets y escritorio.
+# Objetivos
 
----
+<div class="panel-tabset">
 
-## Instrucciones de Ejecución
+## 🎯 Objetivo General
 
-Sigue estos pasos para probar el proyecto en tu entorno local:
+Desarrollar un sistema multiplataforma para la gestión de gastos
+personales utilizando el stack **PERN** y una aplicación móvil basada en
+**Expo**.
 
-**1. Prerrequisitos**
-* Tener instalado Node.js (v16+).
-* Tener el **Backend** de GastanGO corriendo (usualmente en el puerto 3000).
+## 🚀 Objetivos Específicos
 
-**2. Instalación**
-Abre una terminal en la carpeta del proyecto y ejecuta:
-```bash
-npm install
+- **Arquitectura:** Implementar un modelo cliente-servidor desacoplado y
+  escalable.
+- **Persistencia:** Diseñar e integrar una base de datos relacional
+  robusta en PostgreSQL.
+- **Movilidad:** Desarrollar una aplicación móvil nativa funcional para
+  Android e iOS.
+- **UX/UI:** Garantizar una experiencia de usuario intuitiva mediante
+  interfaces modernas.
 
+</div>
 
----
+# Alcance del Proyecto
 
-## 🏗️ Arquitectura en Resumen
+|           Incluye ✅           |            No Incluye ❌            |
+|:------------------------------:|:-----------------------------------:|
+| Registro y autenticación (JWT) | Integración bancaria en tiempo real |
+|     Gestión CRUD de gastos     |     Pagos directos desde la app     |
+|   Visualización Web y Móvil    |  Inteligencia Artificial (Fase 2)   |
+|  Sincronización vía API REST   |                                     |
 
-### Stack Tecnológico
+# Arquitectura del Sistema
 
-```
-┌─────────────────────────────────────────────┐
-│  Frontend (React + Vite)                    │
-│  - React Router, Context API                │
-│  - Tailwind CSS, Framer Motion              │
-│  - Axios con JWT interceptor                │
-└──────────────┬──────────────────────────────┘
-               │ REST/JSON/HTTPS
-               ↓
-┌──────────────────────────────────────────────┐
-│  Backend (Node.js + Express)                 │
-│  - Sequelize ORM                             │
-│  - JWT con Token Blacklist                   │
-│  - Swagger/OpenAPI Docs                      │
-│  - bcryptjs, helmet, CORS                    │
-└──────────────┬───────────────────────────────┘
-               │ SQL/TCP
-               ↓
-┌──────────────────────────────────────────────┐
-│  Database (PostgreSQL en Docker)             │
-│  - 4 Tablas (Users, Transactions, Tokens)    │
-│  - Relaciones 1:N con CASCADE DELETE         │
-│  - pgAdmin para gestión visual               │
-└──────────────────────────────────────────────┘
+El sistema sigue un patrón de diseño **cliente-servidor** desacoplado. A
+continuación se detallan los niveles basados en el **Modelo C4**.
 
-┌──────────────────────────────────────────────┐
-│  Mobile (React Native + Expo)                │
-│  - AsyncStorage para persistencia            │
-│  - Misma API backend                         │
-└──────────────────────────────────────────────┘
-```
+## Diagramas C4 (Structurizr)
 
-### Patrones Implementados
+Para entender la arquitectura, utilizamos el modelo C4. Los siguientes
+diagramas están en formato vectorial (SVG) para una visualización de
+alta calidad sin pérdida de resolución.
 
-| Patrón | Dónde | Beneficio |
-|--------|-------|----------|
-| **MVC** | Backend | Separación responsabilidades |
-| **Context API** | Frontend | State management sin Redux |
-| **JWT + Blacklist** | Auth | Logout inmediato, seguridad |
-| **Middleware** | Backend | Autenticación centralizada |
-| **ORM (Sequelize)** | Backend | SQL injection prevention |
-| **Interceptor** | Frontend/Mobile | Token injection automático |
-| **Singleton** | Services | Instancia única compartida |
+> [!TIP]
+>
+> ### 📌 Guía: Cómo interpretar los diagramas Structurizr
+>
+> **Niveles de Zoom:**
+>
+> 1.  **C1 - Context:** Visión general del negocio y actores externos.
+> 2.  **C2 - Container:** Tecnología (Web, API, Mobile, DB).
+> 3.  **C3 - Component:** Estructura interna (Controladores, Servicios).
+> 4.  **C4 - Despliegue:** Infraestructura y configuración de
+>     despliegue.
 
-### Flujos Críticos
+### Galería de Arquitectura
 
-| Flujo | Entrada | Salida | Validaciones |
-|-------|---------|--------|-------------|
-| **Registro** | email, password, username | JWT token | Email @gmail, contraseña 6+ chars |
-| **Login** | email, password | JWT + Token en BD | Contraseña válida, usuario existe |
-| **Logout** | JWT válido | Confirmation 200 | Token revocado en BD |
-| **Crear TX** | amount, type, category, date | TX guardada | Amount > 0, type enum, userId FK |
-| **Ver TX** | JWT válido | Array de TX | Aisladas por usuario |
+<div>
 
----
+</div>
 
-## 🔐 Seguridad Implementada
+<div class="d-flex flex-wrap gap-2">
 
-✅ **Implementado:**
-- Password hashing (bcryptjs round 10)
-- JWT con expiración (7 días)
-- Token blacklist en BD (logout inmediato)
-- Middleware de autenticación
-- Validaciones express-validator
-- Helmet (security headers)
-- CORS configurado
-- Contraseña nunca en respuestas API
-- userId extraído del token (no confiable del cliente)
+<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
+<i class="bi bi-folder-fill"></i> Explorar diagramas </a>
+<a href="docs/architecure/" class="btn btn-primary" role="button" target="_blank">
+<i class="bi bi-key-fill"></i> Ver Keys </a>
 
-⚠️ **Falta para Producción:**
-- Rate limiting
-- Email verification
-- HTTPS obligatorio
-- Refresh tokens (para mayor seguridad)
-- Logs de auditoría
-- Backup automático
-- Secrets en variables de entorno
+</div>
 
----
+## Llaves de Arquitectura (Leyendas)
+
+Los diagramas de arquitectura utilizan una **notación estandarizada**
+basada en el modelo C4. A continuación se presentan las llaves o
+leyendas que explican los elementos visuales empleados en cada nivel
+arquitectónico:
+
+> [!TIP]
+>
+> ### 🔑 Importancia de las Llaves
+>
+> Las llaves proporcionan una guía visual para interpretar correctamente
+> cada diagrama, identificando los tipos de componentes, las relaciones
+> entre ellos y las tecnologías empleadas.
+
+### Leyendas por Nivel de Arquitectura
+
+<div>
+
+</div>
+
+> [!IMPORTANT]
+>
+> ### 📐 Convenciones de Diseño
+>
+> - **Rectángulos azules:** Sistemas externos (usuarios, servicios de
+>   terceros)
+> - **Rectángulos verdes:** Contenedores de la aplicación (Web, API,
+>   Mobile, DB)
+> - **Componentes internos:** Capas de controladores, servicios y
+>   modelos
+> - **Flechas continuas:** Comunicación sincrónica (HTTP/REST)
+> - **Flechas punteadas:** Dependencias o relaciones opcionales
+
+## Stack Tecnológico
+
+El sistema sigue una arquitectura **cliente-servidor** desacoplada:
+
+- **Frontend Web:** React (Vite + Tailwind CSS)
+- **Backend:** Node.js + Express (API REST)
+- **Base de Datos:** PostgreSQL 16
+- **Mobile App:** Expo (React Native)
+
+# Diseño Móvil (Cross-Platform)
+
+La aplicación móvil fue desarrollada siguiendo el paradigma
+**cross-platform**, permitiendo su ejecución tanto en Android como en
+iOS a partir de una única base de código.
+
+**Ventajas Clave:**
+
+1.  Reducción de costos de desarrollo.
+2.  Mantenimiento unificado.
+3.  Consistencia en la experiencia de usuario.
+
+## Capturas de Pantalla de la Aplicación Móvil
+
+A continuación se presentan las principales pantallas de la aplicación
+móvil **GastanGO**, mostrando la interfaz de usuario y las
+funcionalidades implementadas:
+
+<div>
+
+</div>
+
+> [!NOTE]
+>
+> ### 📱 Experiencia de Usuario
+>
+> La aplicación mantiene una interfaz consistente y moderna, siguiendo
+> los principios de **Material Design** para Android y **Human Interface
+> Guidelines** para iOS, garantizando una experiencia nativa en ambas
+> plataformas.
+
+# Seguridad e Implementación
+
+El sistema implementa mecanismos de defensa en profundidad:
+
+- 🔐 **Autenticación:** JWT (JSON Web Tokens).
+- 🛡️ **Validación de Datos:** Uso de middlewares en Express con
+  librerías de validación (Zod/Express-validator).
+- 🔒 **Cifrado:** Hasheo de credenciales en base de datos.
+- 🚦 **Rutas Protegidas:** Guardias de navegación en Frontend y Mobile.
+- 🌐 **Cross-Platform:** Código unificado mediante el SDK de Expo.
+
+------------------------------------------------------------------------
+
+# Documentación Multimedia
+
+## Demostración Funcional
+
+A continuación, se presenta una demostración funcional del sistema en
+operación:
+
+------------------------------------------------------------------------
+
+# Manual de Usuario
+
+## Instalación
+
+### Requisitos
+
+- Dispositivo Android (6.0+) o iOS (13+).
+- Conexión a Internet activa.
+
+### Descarga de la Aplicación
+
+Puedes acceder a la última compilación de desarrollo a través de Expo:
+
+> [!IMPORTANT]
+>
+> 🔗 **[Descargar GastanGO Mobile (Expo
+> Build)](https://expo.dev/accounts/jxel117/projects/gastango-mobile/builds/7f8a8928-4c10-41a9-baf2-91a5bea4c258)**
+
+## Uso Básico
+
+1.  **Registro:** Crea una cuenta con tu correo electrónico.
+2.  **Dashboard:** Visualiza tu saldo actual y resumen de transacciones.
+3.  **Nueva Transacción:** Pulsa el botón `+` para agregar un gasto o
+    ingreso.
+4.  **Historial:** Revisa tus movimientos pasados en la pestaña de
+    reportes.
+
+# Repositorio y Código Fuente
+
+El desarrollo es de código abierto y está disponible para revisión y
+contribución.
+
+<div class="sourceCode">
+
+https://github.com/Jxel117/GastanGO
+
+</div>
+
+<a href="https://github.com/Jxel117/GastanGO"
+class="btn btn-outline-dark"
+target="_blank"><i class="bi bi-github"></i> Ver Repositorio en
+GitHub</a>
+
+# Conclusiones
+
+GastanGO demuestra la viabilidad de integrar tecnologías web modernas
+con desarrollo móvil multiplataforma, ofreciendo una solución práctica y
+eficiente para la gestión de finanzas personales.
+
+El proyecto evidencia la aplicación de buenas prácticas en arquitectura
+de software, seguridad y experiencia de usuario.
+
+------------------------------------------------------------------------
+
+**Desarrollado por:**
+
+- **Joel Stalin Tapia Pinta** (Jxel117)
+- **Freddy Alexander Matailo Mora** (FreddyAlx1998Mora12)
+
+<div class="sourceCode">
+
+https://github.com/Jxel117/
+
+</div>
+
+<div class="sourceCode">
+
+https://github.com/FreddyAlx1998Mora12
+
+</div>
+
+*Universidad Nacional de Loja - Ingeniería en Ciencias de la
+Computación - 2026*
