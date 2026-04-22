@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 // URL del Backend (Asegúrate de que tu backend esté corriendo en puerto 3000)
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://gastango-back.onrender.com';
+
+
 
 const api = axios.create({
   baseURL: API_URL,
