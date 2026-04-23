@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // URL del Backend (Asegúrate de que tu backend esté corriendo en puerto 3000)
-const API_URL = 'https://gastango-back.onrender.com';
+const API_URL = 'https://gastango-back.onrender.com/api';
 
 
 
